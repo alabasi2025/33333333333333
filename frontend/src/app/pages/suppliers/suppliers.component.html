@@ -1,0 +1,83 @@
+<div class="container">
+  <h1>إدارة الموردين</h1>
+
+  <!-- Form -->
+  <div class="form-card">
+    <h2>{{ isEditing ? 'تعديل مورد' : 'إضافة مورد جديد' }}</h2>
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>الاسم *</label>
+        <input type="text" [(ngModel)]="newSupplier.name" name="name" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" [(ngModel)]="newSupplier.email" name="email">
+        </div>
+        <div class="form-group">
+          <label>الهاتف</label>
+          <input type="tel" [(ngModel)]="newSupplier.phone" name="phone">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الرقم الضريبي</label>
+          <input type="text" [(ngModel)]="newSupplier.taxNumber" name="taxNumber">
+        </div>
+        <div class="form-group">
+          <label>جهة الاتصال</label>
+          <input type="text" [(ngModel)]="newSupplier.contactPerson" name="contactPerson">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>العنوان</label>
+        <textarea [(ngModel)]="newSupplier.address" name="address" rows="3"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">
+          {{ isEditing ? 'تحديث' : 'إضافة' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditing">
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <h2>قائمة الموردين</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الاسم</th>
+          <th>البريد الإلكتروني</th>
+          <th>الهاتف</th>
+          <th>الرقم الضريبي</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let supplier of suppliers">
+          <td>{{ supplier.id }}</td>
+          <td>{{ supplier.name }}</td>
+          <td>{{ supplier.email || '-' }}</td>
+          <td>{{ supplier.phone || '-' }}</td>
+          <td>{{ supplier.taxNumber || '-' }}</td>
+          <td>
+            <button class="btn-edit" (click)="editSupplier(supplier)">تعديل</button>
+            <button class="btn-delete" (click)="deleteSupplier(supplier.id)">حذف</button>
+          </td>
+        </tr>
+        <tr *ngIf="suppliers.length === 0">
+          <td colspan="6" style="text-align: center;">لا توجد بيانات</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
