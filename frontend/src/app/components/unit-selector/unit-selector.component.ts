@@ -40,8 +40,8 @@ export class UnitSelectorComponent implements OnInit {
         this.units = units.map(unit => ({
           id: unit.id,
           name: unit.name,
-          code: unit.code,
-          activeModules: unit.activeModules || []
+          code: unit.code || `UNIT-${unit.id}`,
+          activeModules: unit.enabledModules || unit.activeModules || []
         }));
 
         // تحميل الوحدة المحفوظة أو اختيار الأولى
