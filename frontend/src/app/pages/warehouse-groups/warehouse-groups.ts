@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface Account {
   id: number;
@@ -51,7 +52,7 @@ export class WarehouseGroupsComponent implements OnInit {
   }
 
   loadWarehouseGroups() {
-    this.http.get<WarehouseGroup[]>('http://72.61.111.217:3000/api/warehouse-groups')
+    this.http.get<WarehouseGroup[]>(`${environment.apiUrl}/warehouse-groups`)
       .subscribe({
         next: (data) => {
           this.warehouseGroups = data;
@@ -62,7 +63,7 @@ export class WarehouseGroupsComponent implements OnInit {
   }
 
   loadAccounts() {
-    this.http.get<Account[]>('http://72.61.111.217:3000/api/accounts')
+    this.http.get<Account[]>(`${environment.apiUrl}/accounts`)
       .subscribe({
         next: (data) => {
           this.accounts = data;
@@ -102,8 +103,8 @@ export class WarehouseGroupsComponent implements OnInit {
 
   saveWarehouseGroup() {
     const url = this.isEditMode
-      ? `http://72.61.111.217:3000/api/warehouse-groups/${this.currentWarehouseGroup.id}`
-      : 'http://72.61.111.217:3000/api/warehouse-groups';
+      ? `${environment.apiUrl}/warehouse-groups/${this.currentWarehouseGroup.id}`
+      : `${environment.apiUrl}/warehouse-groups`;
     
     const method = this.isEditMode ? 'put' : 'post';
     
@@ -123,7 +124,7 @@ export class WarehouseGroupsComponent implements OnInit {
 
   deleteWarehouseGroup(id: number) {
     if (confirm('هل أنت متأكد من حذف هذه المجموعة؟')) {
-      this.http.delete(`http://72.61.111.217:3000/api/warehouse-groups/${id}`)
+      this.http.delete(`${environment.apiUrl}/warehouse-groups/${id}`)
         .subscribe({
           next: () => {
             this.loadWarehouseGroups();
