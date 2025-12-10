@@ -12,7 +12,7 @@ interface Account {
   accountLevel: 'main' | 'sub';
   subType?: 'general' | 'cash' | 'bank' | 'supplier' | 'customer' | 'inventory';
   parentId?: number;
-  groupId?: number;
+  groupIds?: number[];
   children?: Account[];
   expanded?: boolean;
   level?: number;
@@ -254,5 +254,33 @@ export class ChartOfAccountsComponent implements OnInit {
       inventory: 'مخزن'
     };
     return labels[subType] || subType;
+  }
+
+  isGroupSelected(groupId: number): boolean {
+    return this.currentAccount.groupIds?.includes(groupId) || false;
+  }
+
+  toggleGroup(groupId: number) {
+    if (!this.currentAccount.groupIds) {
+      this.currentAccount.groupIds = [];
+    }
+    
+    const index = this.currentAccount.groupIds.indexOf(groupId);
+    if (index > -1) {
+      this.currentAccount.groupIds.splice(index, 1);
+    } else {
+      this.currentAccount.groupIds.push(groupId);
+    }
+  }
+
+  getGroupNames(groupIds?: number[]): string {
+    if (!groupIds || groupIds.length === 0) return '';
+    return groupIds
+      .map(id => {
+        const group = this.accountGroups.find(g => g.id === id);
+        return group ? group.name : '';
+      })
+      .filter(name => name)
+      .join(', ');
   }
 }

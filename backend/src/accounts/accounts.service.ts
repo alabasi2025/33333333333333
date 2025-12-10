@@ -9,7 +9,7 @@ export interface Account {
   accountLevel: 'main' | 'sub';
   subType?: 'general' | 'cash' | 'bank' | 'supplier' | 'customer' | 'inventory';
   parentId?: number;
-  groupId?: number;
+  groupIds?: number[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,7 +48,7 @@ export class AccountsService {
       accountLevel: 'sub',
       subType: 'cash',
       parentId: 2,
-      groupId: 1,
+      groupIds: [1],
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -61,7 +61,7 @@ export class AccountsService {
       accountLevel: 'sub',
       subType: 'bank',
       parentId: 2,
-      groupId: 1,
+      groupIds: [1],
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -126,7 +126,7 @@ export class AccountsService {
       accountLevel: accountData.accountLevel || 'main',
       subType: accountData.subType,
       parentId: accountData.parentId,
-      groupId: accountData.groupId,
+      groupIds: accountData.groupIds || [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };

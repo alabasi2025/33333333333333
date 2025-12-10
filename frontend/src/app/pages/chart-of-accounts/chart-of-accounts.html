@@ -171,13 +171,22 @@
           </div>
 
           <div class="form-group">
-            <label>مجموعة الحسابات (اختياري)</label>
-            <select [(ngModel)]="currentAccount.groupId">
-              <option [value]="undefined">-- بدون مجموعة --</option>
+            <label>مجموعات الحسابات (اختياري)</label>
+            <div class="checkbox-group">
               @for (group of accountGroups; track group.id) {
-                <option [value]="group.id">{{ group.code }} - {{ group.name }}</option>
+                <label class="checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    [checked]="isGroupSelected(group.id)"
+                    (change)="toggleGroup(group.id)"
+                  />
+                  <span>{{ group.code }} - {{ group.name }}</span>
+                </label>
               }
-            </select>
+              @if (accountGroups.length === 0) {
+                <p class="no-groups-hint">لا توجد مجموعات. قم بإضافة مجموعات من إعدادات النظام المالي.</p>
+              }
+            </div>
           </div>
         }
 
