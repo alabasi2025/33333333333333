@@ -1,0 +1,155 @@
+<div class="vouchers-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>📃 سندات القبض</h1>
+      <p class="subtitle">إدارة سندات القبض النقدية والبنكية</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="searchVouchers()"
+        placeholder="البحث في السندات..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة سند قبض
+    </button>
+  </div>
+
+  <div class="vouchers-table" *ngIf="filteredVouchers.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم السند</th>
+          <th>التاريخ</th>
+          <th>النوع</th>
+          <th>الصندوق/البنك</th>
+          <th>المستلم من</th>
+          <th>الحساب</th>
+          <th>المبلغ</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let voucher of filteredVouchers">
+          <td><strong>{{ voucher.voucherNumber }}</strong></td>
+          <td>{{ voucher.date | date:'yyyy-MM-dd' }}</td>
+          <td>
+            <span class="badge" [class.badge-cash]="voucher.paymentMethod === 'cash'" [class.badge-bank]="voucher.paymentMethod === 'bank'">
+              {{ voucher.paymentMethod === 'cash' ? '💵 نقدي' : '🏦 بنكي' }}
+            </span>
+          </td>
+          <td>{{ getSourceName(voucher) }}</td>
+          <td>{{ voucher.beneficiary }}</td>
+          <td>{{ voucher.account?.name || '-' }}</td>
+          <td><strong>{{ voucher.amount | number:'1.2-2' }} ر.ي</strong></td>
+          <td>
+            <button class="btn-icon" (click)="openModal(voucher)" title="تعديل">✏️</button>
+            <button class="btn-icon" (click)="deleteVoucher(voucher.id)" title="حذف">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredVouchers.length === 0">
+    <div class="empty-icon">📄</div>
+    <h3>لا توجد سندات قبض</h3>
+    <p>قم بإضافة أول سند قبض</p>
+    <button class="btn-primary" (click)="openModal()">إضافة سند قبض</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل سند قبض' : 'إضافة سند قبض جديد' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>نوع السند *</label>
+          <select [(ngModel)]="currentVoucher.paymentMethod" (change)="onPaymentMethodChange()" class="form-control">
+            <option value="cash">💵 نقدي</option>
+            <option value="bank">🏦 بنكي</option>
+          </select>
+        </div>
+        
+        <div class="form-group" *ngIf="currentVoucher.paymentMethod === 'cash'">
+          <label>الصندوق *</label>
+          <select [(ngModel)]="currentVoucher.cashBoxId" (change)="onSourceChange()" class="form-control" required>
+            <option [value]="null">اختر صندوق...</option>
+            <option *ngFor="let box of cashBoxes" [value]="box.id">
+              {{ box.name }} ({{ box.code }})
+            </option>
+          </select>
+        </div>
+        
+        <div class="form-group" *ngIf="currentVoucher.paymentMethod === 'bank'">
+          <label>البنك *</label>
+          <select [(ngModel)]="currentVoucher.bankId" (change)="onSourceChange()" class="form-control" required>
+            <option [value]="null">اختر بنك...</option>
+            <option *ngFor="let bank of banks" [value]="bank.id">
+              {{ bank.name }} ({{ bank.code }})
+            </option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>رقم السند</label>
+          <input type="text" [(ngModel)]="currentVoucher.voucherNumber" class="form-control" readonly />
+        </div>
+        
+        <div class="form-group">
+          <label>التاريخ *</label>
+          <input type="date" [(ngModel)]="currentVoucher.date" class="form-control" required />
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>الحساب (الدائن) *</label>
+        <select [(ngModel)]="currentVoucher.accountId" class="form-control" required>
+          <option [value]="null">اختر حساب...</option>
+          <option *ngFor="let account of accounts" [value]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>المبلغ *</label>
+          <input type="number" [(ngModel)]="currentVoucher.amount" class="form-control" required min="0" step="0.01" />
+        </div>
+        
+        <div class="form-group">
+          <label>المستلم من *</label>
+          <input type="text" [(ngModel)]="currentVoucher.beneficiary" class="form-control" required />
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>البيان</label>
+        <textarea [(ngModel)]="currentVoucher.description" class="form-control" rows="3"></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveVoucher()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>

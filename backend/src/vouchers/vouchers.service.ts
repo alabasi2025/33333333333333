@@ -127,26 +127,30 @@ export class VouchersService {
     
     if (voucher.paymentMethod === PaymentMethod.CASH && voucher.cashBoxId) {
       const cashBox = await this.cashBoxesService.findOne(voucher.cashBoxId);
-      const currentBalance = parseFloat(cashBox.currentBalance);
+      const currentBalance = typeof cashBox.currentBalance === 'string' ? parseFloat(cashBox.currentBalance) : cashBox.currentBalance;
       
       if (voucher.type === VoucherType.PAYMENT) {
-        cashBox.currentBalance = (currentBalance - amount).toString();
+        const newBalance = currentBalance - amount;
+        cashBox.currentBalance = newBalance as any;
       } else {
-        cashBox.currentBalance = (currentBalance + amount).toString();
+        const newBalance = currentBalance + amount;
+        cashBox.currentBalance = newBalance as any;
       }
       
-      await this.cashBoxesService.update(voucher.cashBoxId, { currentBalance: cashBox.currentBalance });
+      await this.cashBoxesService['cashBoxRepository'].update(voucher.cashBoxId, { currentBalance: cashBox.currentBalance });
     } else if (voucher.paymentMethod === PaymentMethod.BANK && voucher.bankId) {
       const bank = await this.banksService.findOne(voucher.bankId);
-      const currentBalance = parseFloat(bank.currentBalance);
+      const currentBalance = typeof bank.currentBalance === 'string' ? parseFloat(bank.currentBalance) : bank.currentBalance;
       
       if (voucher.type === VoucherType.PAYMENT) {
-        bank.currentBalance = (currentBalance - amount).toString();
+        const newBalance = currentBalance - amount;
+        bank.currentBalance = newBalance as any;
       } else {
-        bank.currentBalance = (currentBalance + amount).toString();
+        const newBalance = currentBalance + amount;
+        bank.currentBalance = newBalance as any;
       }
       
-      await this.banksService.update(voucher.bankId, { currentBalance: bank.currentBalance });
+      await this.banksService['bankRepository'].update(voucher.bankId, { currentBalance: bank.currentBalance });
     }
   }
 
@@ -155,26 +159,30 @@ export class VouchersService {
     
     if (voucher.paymentMethod === PaymentMethod.CASH && voucher.cashBoxId) {
       const cashBox = await this.cashBoxesService.findOne(voucher.cashBoxId);
-      const currentBalance = parseFloat(cashBox.currentBalance);
+      const currentBalance = typeof cashBox.currentBalance === 'string' ? parseFloat(cashBox.currentBalance) : cashBox.currentBalance;
       
       if (voucher.type === VoucherType.PAYMENT) {
-        cashBox.currentBalance = (currentBalance + amount).toString();
+        const newBalance = currentBalance + amount;
+        cashBox.currentBalance = newBalance as any;
       } else {
-        cashBox.currentBalance = (currentBalance - amount).toString();
+        const newBalance = currentBalance - amount;
+        cashBox.currentBalance = newBalance as any;
       }
       
-      await this.cashBoxesService.update(voucher.cashBoxId, { currentBalance: cashBox.currentBalance });
+      await this.cashBoxesService['cashBoxRepository'].update(voucher.cashBoxId, { currentBalance: cashBox.currentBalance });
     } else if (voucher.paymentMethod === PaymentMethod.BANK && voucher.bankId) {
       const bank = await this.banksService.findOne(voucher.bankId);
-      const currentBalance = parseFloat(bank.currentBalance);
+      const currentBalance = typeof bank.currentBalance === 'string' ? parseFloat(bank.currentBalance) : bank.currentBalance;
       
       if (voucher.type === VoucherType.PAYMENT) {
-        bank.currentBalance = (currentBalance + amount).toString();
+        const newBalance = currentBalance + amount;
+        bank.currentBalance = newBalance as any;
       } else {
-        bank.currentBalance = (currentBalance - amount).toString();
+        const newBalance = currentBalance - amount;
+        bank.currentBalance = newBalance as any;
       }
       
-      await this.banksService.update(voucher.bankId, { currentBalance: bank.currentBalance });
+      await this.banksService['bankRepository'].update(voucher.bankId, { currentBalance: bank.currentBalance });
     }
   }
 }
