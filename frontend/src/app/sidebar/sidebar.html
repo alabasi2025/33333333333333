@@ -60,10 +60,25 @@
       </div>
     </div>
     
-    <a routerLink="/inventory" routerLinkActive="active" class="nav-item">
-      <span class="icon">📦</span>
-      <span class="label">نظام المخازن</span>
-    </a>
+    <div class="nav-group">
+      <div class="nav-item" (click)="toggleInventory()">
+        <span class="icon">📦</span>
+        <span class="label">نظام المخازن</span>
+        <span class="arrow" [class.open]="isInventoryOpen">▼</span>
+      </div>
+      
+      <div class="submenu" [class.open]="isInventoryOpen">
+        <a routerLink="/inventory/warehouses" routerLinkActive="active" class="submenu-item">
+          <span class="icon">🏭</span>
+          <span class="label">المخازن</span>
+        </a>
+        
+        <a routerLink="/inventory/items" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📦</span>
+          <span class="label">الأصناف</span>
+        </a>
+      </div>
+    </div>
     
     <a routerLink="/suppliers" routerLinkActive="active" class="nav-item">
       <span class="icon">🏢</span>

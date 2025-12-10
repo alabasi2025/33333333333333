@@ -1,0 +1,178 @@
+<div class="items-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>📦 الأصناف</h1>
+      <p class="subtitle">إدارة أصناف المخزون</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="filterItems()"
+          placeholder="البحث في الأصناف..."
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+      <select [(ngModel)]="selectedCategory" (change)="filterByCategory()" class="category-filter">
+        <option value="">جميع الفئات</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة صنف
+    </button>
+  </div>
+
+  <div class="items-grid" *ngIf="filteredItems.length > 0">
+    <div class="item-card" *ngFor="let item of filteredItems">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>{{ item.name }}</h3>
+          <span class="code-badge">{{ item.code }}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" (click)="openModal(item)" title="تعديل">✏️</button>
+          <button class="btn-icon" (click)="deleteItem(item.id)" title="حذف">🗑️</button>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item" *ngIf="item.category">
+            <span class="icon">🏷️</span>
+            <span class="label">الفئة:</span>
+            <span class="value">{{ item.category }}</span>
+          </div>
+          <div class="info-item" *ngIf="item.unitId">
+            <span class="icon">📏</span>
+            <span class="label">الوحدة:</span>
+            <span class="value">{{ getUnitName(item.unitId) }}</span>
+          </div>
+          <div class="info-item" *ngIf="item.unitPrice">
+            <span class="icon">💵</span>
+            <span class="label">السعر:</span>
+            <span class="value">{{ item.unitPrice | number:'1.2-2' }} ر.ي</span>
+          </div>
+          <div class="info-item" *ngIf="item.minStockLevel">
+            <span class="icon">⚠️</span>
+            <span class="label">الحد الأدنى:</span>
+            <span class="value">{{ item.minStockLevel | number:'1.0-2' }}</span>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="item.description">{{ item.description }}</p>
+        
+        <div class="card-footer">
+          <span 
+            class="status-badge" 
+            [class.active]="item.isActive"
+            [class.inactive]="!item.isActive"
+            (click)="toggleStatus(item)"
+          >
+            {{ item.isActive ? 'نشط' : 'غير نشط' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredItems.length === 0">
+    <div class="empty-icon">📦</div>
+    <h3>لا توجد أصناف</h3>
+    <p>قم بإضافة أول صنف للمخزون</p>
+    <button class="btn-primary" (click)="openModal()">إضافة صنف</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل صنف' : 'إضافة صنف جديد' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم الصنف *</label>
+          <input type="text" [(ngModel)]="currentItem.name" placeholder="مثال: صاج حديد 2مم" />
+        </div>
+
+        <div class="form-group">
+          <label>الكود *</label>
+          <input type="text" [(ngModel)]="currentItem.code" placeholder="مثال: ITEM-001" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الفئة</label>
+          <select [(ngModel)]="currentItem.category">
+            <option value="">اختر فئة...</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>الوحدة</label>
+          <select [(ngModel)]="currentItem.unitId">
+            <option [value]="undefined">اختر وحدة...</option>
+            <option *ngFor="let unit of units" [value]="unit.id">{{ unit.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>الحساب المرتبط</label>
+        <select [(ngModel)]="currentItem.accountId">
+          <option [value]="undefined">اختر حساب...</option>
+          <option *ngFor="let account of accounts" [value]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>سعر الوحدة</label>
+          <input type="number" [(ngModel)]="currentItem.unitPrice" step="0.01" placeholder="0.00" />
+        </div>
+
+        <div class="form-group">
+          <label>الحد الأدنى للمخزون</label>
+          <input type="number" [(ngModel)]="currentItem.minStockLevel" step="0.01" placeholder="0.00" />
+        </div>
+
+        <div class="form-group">
+          <label>الحد الأقصى للمخزون</label>
+          <input type="number" [(ngModel)]="currentItem.maxStockLevel" step="0.01" placeholder="0.00" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea [(ngModel)]="currentItem.description" rows="3" placeholder="وصف الصنف..."></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="currentItem.isActive" />
+          <span>نشط</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveItem()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -23,6 +23,11 @@ import { JournalEntriesModule } from './journal-entries/journal-entries.module';
 import { JournalEntry } from './journal-entries/journal-entry.entity';
 import { JournalEntryLine } from './journal-entries/journal-entry-line.entity';
 import { ReportsModule } from './reports/reports.module';
+import { WarehousesModule } from './warehouses/warehouses.module';
+import { Warehouse } from './warehouses/warehouse.entity';
+import { Item } from './warehouses/item.entity';
+import { StockMovement } from './warehouses/stock-movement.entity';
+import { StockBalance } from './warehouses/stock-balance.entity';
 
 @Module({
   imports: [
@@ -33,7 +38,7 @@ import { ReportsModule } from './reports/reports.module';
       username: 'semop_user',
       password: 'Acc@2025#Secure',
       database: 'semop_db',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance],
       synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),
@@ -48,6 +53,7 @@ import { ReportsModule } from './reports/reports.module';
     VouchersModule,
     JournalEntriesModule,
     ReportsModule,
+    WarehousesModule,
   ],
 })
 export class AppModule {}

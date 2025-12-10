@@ -1,0 +1,140 @@
+<div class="warehouses-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🏭 المخازن</h1>
+      <p class="subtitle">إدارة المخازن والمستودعات</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="filterWarehouses()"
+        placeholder="البحث في المخازن..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة مخزن
+    </button>
+  </div>
+
+  <div class="warehouses-grid" *ngIf="filteredWarehouses.length > 0">
+    <div class="warehouse-card" *ngFor="let warehouse of filteredWarehouses">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>{{ warehouse.name }}</h3>
+          <span class="code-badge">{{ warehouse.code }}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" (click)="openModal(warehouse)" title="تعديل">✏️</button>
+          <button class="btn-icon" (click)="deleteWarehouse(warehouse.id)" title="حذف">🗑️</button>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item" *ngIf="warehouse.location">
+            <span class="icon">📍</span>
+            <span class="label">الموقع:</span>
+            <span class="value">{{ warehouse.location }}</span>
+          </div>
+          <div class="info-item" *ngIf="warehouse.managerName">
+            <span class="icon">👤</span>
+            <span class="label">المسؤول:</span>
+            <span class="value">{{ warehouse.managerName }}</span>
+          </div>
+          <div class="info-item" *ngIf="warehouse.accountId">
+            <span class="icon">💰</span>
+            <span class="label">الحساب:</span>
+            <span class="value">{{ getAccountName(warehouse.accountId) }}</span>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="warehouse.description">{{ warehouse.description }}</p>
+        
+        <div class="card-footer">
+          <span 
+            class="status-badge" 
+            [class.active]="warehouse.isActive"
+            [class.inactive]="!warehouse.isActive"
+            (click)="toggleStatus(warehouse)"
+          >
+            {{ warehouse.isActive ? 'نشط' : 'غير نشط' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredWarehouses.length === 0">
+    <div class="empty-icon">🏭</div>
+    <h3>لا توجد مخازن</h3>
+    <p>قم بإضافة أول مخزن</p>
+    <button class="btn-primary" (click)="openModal()">إضافة مخزن</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل مخزن' : 'إضافة مخزن جديد' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم المخزن *</label>
+        <input type="text" [(ngModel)]="currentWarehouse.name" placeholder="مثال: مخزن المواد الخام" />
+      </div>
+
+      <div class="form-group">
+        <label>الكود *</label>
+        <input type="text" [(ngModel)]="currentWarehouse.code" placeholder="مثال: WH-001" />
+      </div>
+
+      <div class="form-group">
+        <label>الحساب المرتبط</label>
+        <select [(ngModel)]="currentWarehouse.accountId">
+          <option [value]="undefined">اختر حساب...</option>
+          <option *ngFor="let account of accounts" [value]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الموقع</label>
+        <input type="text" [(ngModel)]="currentWarehouse.location" placeholder="مثال: المنطقة الصناعية - المبنى A" />
+      </div>
+
+      <div class="form-group">
+        <label>اسم المسؤول</label>
+        <input type="text" [(ngModel)]="currentWarehouse.managerName" placeholder="مثال: أحمد محمد" />
+      </div>
+
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea [(ngModel)]="currentWarehouse.description" rows="3" placeholder="وصف المخزن..."></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="currentWarehouse.isActive" />
+          <span>نشط</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveWarehouse()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>

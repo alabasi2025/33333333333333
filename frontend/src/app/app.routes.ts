@@ -8,6 +8,8 @@ import { BanksComponent } from './pages/banks/banks';
 import { PaymentVoucherComponent } from './pages/payment-voucher/payment-voucher';
 import { ReceiptVoucherComponent } from './pages/receipt-voucher/receipt-voucher';
 import { TrialBalanceComponent } from './pages/trial-balance/trial-balance';
+import { WarehousesComponent } from './pages/warehouses/warehouses';
+import { ItemsComponent } from './pages/items/items';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -22,5 +24,7 @@ export const routes: Routes = [
   { path: 'financial/receipt-voucher', component: ReceiptVoucherComponent },
   { path: 'financial/trial-balance', component: TrialBalanceComponent },
   { path: 'inventory', component: Dashboard },
+  { path: 'inventory/warehouses', component: WarehousesComponent },
+  { path: 'inventory/items', component: ItemsComponent },
   { path: 'purchases', component: Dashboard },
 ];
