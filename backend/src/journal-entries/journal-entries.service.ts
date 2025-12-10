@@ -70,11 +70,31 @@ export class JournalEntriesService {
     return await this.findOne(savedEntry.id);
   }
 
-  async findAll(): Promise<JournalEntry[]> {
-    return await this.journalEntryRepository.find({
-      relations: ['lines', 'lines.account'],
-      order: { date: 'DESC', entryNumber: 'DESC' },
-    });
+  async findAll(filters?: {
+    startDate?: string;
+    endDate?: string;
+    accountId?: number;
+  }): Promise<JournalEntry[]> {
+    const query = this.journalEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.lines', 'lines')
+      .leftJoinAndSelect('lines.account', 'account')
+      .orderBy('entry.date', 'DESC')
+      .addOrderBy('entry.entryNumber', 'DESC');
+
+    if (filters?.startDate) {
+      query.andWhere('entry.date >= :startDate', { startDate: filters.startDate });
+    }
+
+    if (filters?.endDate) {
+      query.andWhere('entry.date <= :endDate', { endDate: filters.endDate });
+    }
+
+    if (filters?.accountId) {
+      query.andWhere('lines.accountId = :accountId', { accountId: filters.accountId });
+    }
+
+    return await query.getMany();
   }
 
   async findOne(id: number): Promise<JournalEntry> {
@@ -97,6 +117,63 @@ export class JournalEntriesService {
       await this.journalEntryLineRepository.delete({ journalEntryId: entry.id });
       await this.journalEntryRepository.delete(entry.id);
     }
+  }
+
+  async update(
+    id: number,
+    data: {
+      date?: string;
+      description?: string;
+      reference?: string;
+      lines?: Array<{
+        accountId: number;
+        debit: number;
+        credit: number;
+        description?: string;
+      }>;
+    },
+  ): Promise<JournalEntry> {
+    const entry = await this.findOne(id);
+
+    // تحديث بيانات القيد
+    if (data.date) entry.date = new Date(data.date) as any;
+    if (data.description !== undefined) entry.description = data.description;
+    if (data.reference !== undefined) entry.reference = data.reference;
+
+    // تحديث السطور إذا تم تعديلها
+    if (data.lines) {
+      // حذف السطور القديمة
+      await this.journalEntryLineRepository.delete({ journalEntryId: id });
+
+      // إنشاء السطور الجديدة
+      const lines = data.lines.map(line =>
+        this.journalEntryLineRepository.create({
+          journalEntryId: id,
+          accountId: line.accountId,
+          debit: line.debit,
+          credit: line.credit,
+          description: line.description,
+        })
+      );
+
+      await this.journalEntryLineRepository.save(lines);
+
+      // تحديث الإجماليات
+      const totalDebit = data.lines.reduce((sum, line) => sum + Number(line.debit), 0);
+      const totalCredit = data.lines.reduce((sum, line) => sum + Number(line.credit), 0);
+      entry.totalDebit = totalDebit as any;
+      entry.totalCredit = totalCredit as any;
+    }
+
+    await this.journalEntryRepository.save(entry);
+    return await this.findOne(id);
+  }
+
+  async remove(id: number): Promise<void> {
+    // حذف السطور أولاً
+    await this.journalEntryLineRepository.delete({ journalEntryId: id });
+    // ثم حذف القيد
+    await this.journalEntryRepository.delete(id);
   }
 
   private async getNextEntryNumber(): Promise<string> {
