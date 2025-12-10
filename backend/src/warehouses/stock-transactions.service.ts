@@ -214,9 +214,10 @@ export class StockTransactionsService {
     // إنشاء القيد
     const journalEntry = this.journalEntryRepository.create({
       entryNumber,
-      entryDate: transaction.transactionDate,
+      date: transaction.transactionDate,
       description,
-      referenceNumber: transaction.transactionNumber,
+      referenceType: 'stock_transaction',
+      referenceId: transaction.id,
       totalDebit: Number(transaction.totalAmount),
       totalCredit: Number(transaction.totalAmount),
     });
