@@ -32,10 +32,8 @@ export class AccountGroupsService {
     }
   }
 
-  async findAll(unitId?: number): Promise<AccountGroup[]> {
-    const where = unitId ? { unitId } : {};
+  async findAll(): Promise<AccountGroup[]> {
     return await this.accountGroupRepository.find({
-      where,
       order: { code: 'ASC' },
     });
   }

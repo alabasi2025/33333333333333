@@ -17,8 +17,8 @@ export class AccountGroupsController {
   constructor(private readonly accountGroupsService: AccountGroupsService) {}
 
   @Get()
-  async findAll(@Query('unitId') unitId?: string): Promise<AccountGroup[]> {
-    return await this.accountGroupsService.findAll(unitId ? +unitId : undefined);
+  async findAll(): Promise<AccountGroup[]> {
+    return await this.accountGroupsService.findAll();
   }
 
   @Get(':id')

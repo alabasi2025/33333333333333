@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -28,19 +28,35 @@ export class FinancialSettingsComponent implements OnInit {
   currentGroup: AccountGroup = { code: '', name: '' };
 
   private apiUrl = '/api/account-groups';
+  private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    console.log('🚀 FinancialSettingsComponent constructor called');
+  }
 
   ngOnInit() {
+    console.log('🎯 ngOnInit called - loading account groups...');
     this.loadAccountGroups();
   }
 
   loadAccountGroups() {
+    console.log('📊 Loading account groups from:', this.apiUrl);
     this.http.get<AccountGroup[]>(this.apiUrl).subscribe({
       next: (data) => {
+        console.log('✅ Account groups received:', data);
+        console.log('📏 Data length:', data.length);
         this.accountGroups = data;
+        console.log('📋 accountGroups assigned:', this.accountGroups);
+        
+        // إجبار Angular على تحديث الواجهة
+        this.cdr.detectChanges();
+        console.log('✅ Change detection triggered!');
       },
-      error: (err) => console.error('Error loading account groups:', err)
+      error: (err) => {
+        console.error('❌ Error loading account groups:', err);
+        console.error('❌ Error details:', JSON.stringify(err, null, 2));
+      }
     });
   }
 
