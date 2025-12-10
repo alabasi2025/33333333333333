@@ -26,6 +26,18 @@ interface TransactionItem {
   notes?: string;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+  code: string;
+}
+
+interface Account {
+  id: number;
+  name: string;
+  code: string;
+}
+
 interface StockTransaction {
   id?: number;
   transactionNumber?: string;
@@ -39,6 +51,13 @@ interface StockTransaction {
   totalAmount?: number;
   isApproved?: boolean;
   journalEntryId?: number;
+  supplierId?: number;
+  supplier?: Supplier;
+  supplierName?: string;
+  paymentAccountId?: number;
+  paymentAccount?: Account;
+  paymentAccountName?: string;
+  paymentType?: 'supplier' | 'account';
   items: (TransactionItem & { item?: { id: number; name: string } })[];
 }
 
@@ -53,12 +72,15 @@ export class StockInComponent implements OnInit {
   transactions: StockTransaction[] = [];
   warehouses: Warehouse[] = [];
   items: Item[] = [];
+  suppliers: Supplier[] = [];
+  accounts: Account[] = [];
   showModal: boolean = false;
   
   currentTransaction: StockTransaction = {
     transactionType: 'in',
     warehouseId: 0,
     transactionDate: new Date().toISOString().split('T')[0],
+    paymentType: 'supplier',
     items: []
   };
 
@@ -75,6 +97,8 @@ export class StockInComponent implements OnInit {
     this.loadTransactions();
     this.loadWarehouses();
     this.loadItems();
+    this.loadSuppliers();
+    this.loadAccounts();
   }
 
   loadTransactions() {
@@ -84,6 +108,8 @@ export class StockInComponent implements OnInit {
           this.transactions = data.map(t => ({
             ...t,
             warehouseName: t.warehouse?.name,
+            supplierName: t.supplier?.name,
+            paymentAccountName: t.paymentAccount?.name,
             items: t.items?.map(i => ({
               ...i,
               itemName: i.item?.name
@@ -114,11 +140,40 @@ export class StockInComponent implements OnInit {
       });
   }
 
+  loadSuppliers() {
+    this.http.get<Supplier[]>(`${environment.apiUrl}/suppliers`)
+      .subscribe({
+        next: (data) => {
+          this.suppliers = data;
+        },
+        error: (error) => console.error('خطأ في تحميل الموردين:', error)
+      });
+  }
+
+  loadAccounts() {
+    this.http.get<Account[]>(`${environment.apiUrl}/accounts`)
+      .subscribe({
+        next: (data) => {
+          this.accounts = data;
+        },
+        error: (error) => console.error('خطأ في تحميل الحسابات:', error)
+      });
+  }
+
+  onPaymentTypeChange() {
+    if (this.currentTransaction.paymentType === 'supplier') {
+      this.currentTransaction.paymentAccountId = undefined;
+    } else {
+      this.currentTransaction.supplierId = undefined;
+    }
+  }
+
   openModal() {
     this.currentTransaction = {
       transactionType: 'in',
       warehouseId: 0,
       transactionDate: new Date().toISOString().split('T')[0],
+      paymentType: 'supplier',
       items: []
     };
     this.newItem = {

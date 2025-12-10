@@ -20,6 +20,7 @@
           <th>المخزن</th>
           <th>التاريخ</th>
           <th>المرجع</th>
+          <th>المورد/الحساب</th>
           <th>الإجمالي</th>
           <th>الحالة</th>
           <th>الإجراءات</th>
@@ -31,6 +32,7 @@
           <td>{{ transaction.warehouseName }}</td>
           <td>{{ transaction.transactionDate | date:'yyyy-MM-dd' }}</td>
           <td>{{ transaction.referenceNumber || '-' }}</td>
+          <td>{{ transaction.supplierName || transaction.paymentAccountName || '-' }}</td>
           <td class="amount">{{ transaction.totalAmount | number:'1.2-2' }}</td>
           <td>
             <span class="status-badge" [class.active]="transaction.isApproved">
@@ -78,6 +80,36 @@
           <label>رقم المرجع</label>
           <input type="text" [(ngModel)]="currentTransaction.referenceNumber" 
                  placeholder="رقم فاتورة المورد..." class="form-control">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>نوع الدفع *</label>
+          <select [(ngModel)]="currentTransaction.paymentType" (change)="onPaymentTypeChange()" class="form-control">
+            <option value="supplier">مورد</option>
+            <option value="account">حساب مباشر</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="currentTransaction.paymentType === 'supplier'">
+          <label>المورد</label>
+          <select [(ngModel)]="currentTransaction.supplierId" class="form-control">
+            <option [ngValue]="undefined">اختر المورد...</option>
+            <option *ngFor="let supplier of suppliers" [ngValue]="supplier.id">
+              {{ supplier.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="currentTransaction.paymentType === 'account'">
+          <label>الحساب</label>
+          <select [(ngModel)]="currentTransaction.paymentAccountId" class="form-control">
+            <option [ngValue]="undefined">اختر الحساب...</option>
+            <option *ngFor="let account of accounts" [ngValue]="account.id">
+              {{ account.code }} - {{ account.name }}
+            </option>
+          </select>
         </div>
       </div>
 

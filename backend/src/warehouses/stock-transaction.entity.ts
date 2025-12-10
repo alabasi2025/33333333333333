@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Warehouse } from './warehouse.entity';
 import { StockTransactionItem } from './stock-transaction-item.entity';
+import { Supplier } from './supplier.entity';
+import { Account } from '../financial/account.entity';
 
 @Entity('stock_transactions')
 export class StockTransaction {
@@ -38,8 +40,16 @@ export class StockTransaction {
   @Column({ name: 'payment_account_id', nullable: true })
   paymentAccountId: number;
 
+  @ManyToOne(() => Account, { nullable: true })
+  @JoinColumn({ name: 'payment_account_id' })
+  paymentAccount: Account;
+
   @Column({ name: 'supplier_id', nullable: true })
   supplierId: number;
+
+  @ManyToOne(() => Supplier, { nullable: true })
+  @JoinColumn({ name: 'supplier_id' })
+  supplier: Supplier;
 
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
