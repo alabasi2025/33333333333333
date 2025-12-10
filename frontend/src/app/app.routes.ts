@@ -11,6 +11,8 @@ import { TrialBalanceComponent } from './pages/trial-balance/trial-balance';
 import { WarehousesComponent } from './pages/warehouses/warehouses';
 import { ItemsComponent } from './pages/items/items';
 import { WarehouseGroupsComponent } from './pages/warehouse-groups/warehouse-groups';
+import { StockInComponent } from './pages/stock-in/stock-in';
+import { StockOutComponent } from './pages/stock-out/stock-out';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -28,5 +30,7 @@ export const routes: Routes = [
   { path: 'inventory/warehouse-groups', component: WarehouseGroupsComponent },
   { path: 'inventory/warehouses', component: WarehousesComponent },
   { path: 'inventory/items', component: ItemsComponent },
+  { path: 'inventory/stock-in', component: StockInComponent },
+  { path: 'inventory/stock-out', component: StockOutComponent },
   { path: 'purchases', component: Dashboard },
 ];
