@@ -90,16 +90,33 @@ export class CashBoxesComponent implements OnInit {
   }
 
   loadIntermediateAccounts() {
-    console.log('🔄 Loading intermediate accounts from API...');
-    this.http.get<any[]>(`${environment.apiUrl}/accounts`)
+    console.log('🔄 Loading available intermediate accounts from API...');
+    const excludeId = this.isEditMode && this.currentCashBox.id ? this.currentCashBox.id : undefined;
+    const url = excludeId 
+      ? `${environment.apiUrl}/accounts/available/intermediate?excludeId=${excludeId}`
+      : `${environment.apiUrl}/accounts/available/intermediate`;
+    
+    this.http.get<any[]>(url)
       .subscribe({
         next: (data) => {
-          console.log('✅ Accounts received:', data);
-          // Filter accounts under 6000 (الحسابات الوسيطة)
-          this.intermediateAccounts = data.filter((acc: any) => 
-            acc.code && acc.code.startsWith('6') && acc.accountLevel === 'sub'
-          );
-          console.log('✅ Intermediate accounts filtered:', this.intermediateAccounts);
+          console.log('✅ Available intermediate accounts received:', data);
+          this.intermediateAccounts = data;
+          
+          // If editing, add the current intermediate account if it exists
+          if (this.isEditMode && this.currentCashBox.intermediateAccountId) {
+            this.http.get<any>(`${environment.apiUrl}/accounts/${this.currentCashBox.intermediateAccountId}`)
+              .subscribe({
+                next: (currentAccount) => {
+                  // Check if current account is not already in the list
+                  if (!this.intermediateAccounts.find(acc => acc.id === currentAccount.id)) {
+                    this.intermediateAccounts.unshift(currentAccount);
+                  }
+                  this.cdr.detectChanges();
+                },
+                error: (err) => console.error('❌ Error loading current intermediate account:', err)
+              });
+          }
+          
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -137,6 +154,8 @@ export class CashBoxesComponent implements OnInit {
         isActive: true
       };
     }
+    // Reload intermediate accounts based on edit mode
+    this.loadIntermediateAccounts();
   }
 
   closeModal() {
