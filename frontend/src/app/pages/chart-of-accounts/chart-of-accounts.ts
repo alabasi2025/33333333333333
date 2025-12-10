@@ -14,6 +14,7 @@ interface Account {
   parentId?: number;
   children?: Account[];
   expanded?: boolean;
+  level?: number;
 }
 
 @Component({
@@ -154,6 +155,24 @@ export class ChartOfAccountsComponent implements OnInit {
     } else {
       this.currentAccount.subType = 'general';
     }
+  }
+
+  getMainAccounts(): Account[] {
+    return this.accounts.filter(acc => acc.accountLevel === 'main');
+  }
+
+  getAllAccountsFlat(): Account[] {
+    const flat: Account[] = [];
+    const addToFlat = (accounts: Account[], level: number = 0) => {
+      accounts.forEach(acc => {
+        flat.push({ ...acc, level });
+        if (acc.children && acc.children.length > 0) {
+          addToFlat(acc.children, level + 1);
+        }
+      });
+    };
+    addToFlat(this.accounts);
+    return flat;
   }
 
   saveAccount() {

@@ -147,6 +147,18 @@
 
         @if (currentAccount.accountLevel === 'sub') {
           <div class="form-group">
+            <label>الحساب الأب *</label>
+            <select [(ngModel)]="currentAccount.parentId">
+              <option [value]="undefined">-- اختر الحساب الأب --</option>
+              @for (acc of getAllAccountsFlat(); track acc.id) {
+                <option [value]="acc.id">
+                  {{ '—'.repeat(acc.level || 0) }} {{ acc.code }} - {{ acc.name }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
             <label>نوع الحساب الفرعي *</label>
             <select [(ngModel)]="currentAccount.subType">
               <option value="general">عام</option>
