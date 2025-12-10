@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -50,10 +50,14 @@ export class ChartOfAccountsComponent implements OnInit {
 
   private apiUrl = '/api/accounts';
   private groupsApiUrl = '/api/account-groups';
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    console.log('🚀 ChartOfAccountsComponent constructor called');
+  }
 
   ngOnInit() {
+    console.log('🎯 ngOnInit called - loading data...');
     this.loadAccounts();
     this.loadAccountGroups();
   }
@@ -68,12 +72,15 @@ export class ChartOfAccountsComponent implements OnInit {
   }
 
   loadAccounts() {
+    console.log('📊 Loading accounts from:', this.apiUrl);
     this.http.get<Account[]>(this.apiUrl).subscribe({
       next: (data) => {
+        console.log('✅ Accounts loaded:', data.length, 'accounts');
         this.accounts = this.buildTree(data);
         this.filteredAccounts = [...this.accounts];
+        console.log('🌳 Tree built:', this.accounts);
       },
-      error: (err) => console.error('Error loading accounts:', err)
+      error: (err) => console.error('❌ Error loading accounts:', err)
     });
   }
 
