@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 
 interface TrialBalanceItem {
   accountCode: string;
@@ -28,8 +27,6 @@ interface TrialBalanceReport {
   styleUrls: ['./trial-balance.css']
 })
 export class TrialBalanceComponent implements OnInit {
-  private http = inject(HttpClient);
-  
   report: TrialBalanceReport | null = null;
   loading = false;
   error: string | null = null;
@@ -43,39 +40,44 @@ export class TrialBalanceComponent implements OnInit {
     this.loadReport();
   }
 
-  loadReport() {
+  async loadReport() {
     console.log('Loading trial balance report...');
     this.loading = true;
     this.error = null;
     
-    let url = `${this.apiUrl}/reports/trial-balance`;
-    const params: string[] = [];
-    
-    if (this.startDate) {
-      params.push(`startDate=${this.startDate}`);
-    }
-    if (this.endDate) {
-      params.push(`endDate=${this.endDate}`);
-    }
-    
-    if (params.length > 0) {
-      url += '?' + params.join('&');
-    }
-
-    console.log('Fetching from URL:', url);
-
-    this.http.get<TrialBalanceReport>(url).subscribe({
-      next: (data) => {
-        console.log('Data received:', data);
-        this.report = data;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading trial balance:', error);
-        this.error = 'حدث خطأ أثناء تحميل ميزان المراجعة: ' + (error.message || 'خطأ غير معروف');
-        this.loading = false;
+    try {
+      let url = `${this.apiUrl}/reports/trial-balance`;
+      const params: string[] = [];
+      
+      if (this.startDate) {
+        params.push(`startDate=${this.startDate}`);
       }
-    });
+      if (this.endDate) {
+        params.push(`endDate=${this.endDate}`);
+      }
+      
+      if (params.length > 0) {
+        url += '?' + params.join('&');
+      }
+
+      console.log('Fetching from URL:', url);
+
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data: TrialBalanceReport = await response.json();
+      console.log('Data received:', data);
+      
+      this.report = data;
+      this.loading = false;
+    } catch (error: any) {
+      console.error('Error loading trial balance:', error);
+      this.error = 'حدث خطأ أثناء تحميل ميزان المراجعة: ' + (error.message || 'خطأ غير معروف');
+      this.loading = false;
+    }
   }
 
   printReport() {
