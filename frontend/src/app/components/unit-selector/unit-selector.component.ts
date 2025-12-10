@@ -21,9 +21,12 @@ export class UnitSelectorComponent implements OnInit {
   isDropdownOpen = false;
   isLoading = true;
 
-  constructor() {}
+  constructor() {
+    console.log('🚀 UnitSelectorComponent - Constructor called');
+  }
 
   ngOnInit() {
+    console.log('🚀 UnitSelectorComponent - ngOnInit called');
     this.loadUnits();
   }
 
