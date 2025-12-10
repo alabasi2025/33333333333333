@@ -14,7 +14,7 @@ export class AccountGroup {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ name: 'unit_id' })
+  @Column({ name: 'unit_id', nullable: true })
   unitId: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
