@@ -27,6 +27,15 @@ export class AccountsController {
     );
   }
 
+  @Get('available/intermediate')
+  async getAvailableIntermediateAccounts(
+    @Query('excludeId') excludeId?: string
+  ): Promise<Account[]> {
+    return await this.accountsService.findAvailableIntermediateAccounts(
+      excludeId ? +excludeId : undefined
+    );
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<Account> {
     return await this.accountsService.findOne(id);
@@ -49,14 +58,5 @@ export class AccountsController {
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.accountsService.remove(id);
     return { success: true };
-  }
-
-  @Get('available/intermediate')
-  async getAvailableIntermediateAccounts(
-    @Query('excludeId') excludeId?: string
-  ): Promise<Account[]> {
-    return await this.accountsService.findAvailableIntermediateAccounts(
-      excludeId ? +excludeId : undefined
-    );
   }
 }
