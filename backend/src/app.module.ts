@@ -34,7 +34,7 @@ import { ReportsModule } from './reports/reports.module';
       password: 'Acc@2025#Secure',
       database: 'semop_db',
       entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine],
-      synchronize: true, // Auto-create tables (only for development)
+      synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),
     SuppliersModule,
