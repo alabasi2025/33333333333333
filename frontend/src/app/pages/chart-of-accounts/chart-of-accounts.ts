@@ -271,7 +271,20 @@ export class ChartOfAccountsComponent implements OnInit {
       this.http.put<Account>(`${this.apiUrl}/${this.currentAccount.id}`, accountData).subscribe({
         next: (response) => {
           console.log('✅ Update successful!', response);
-          alert('✅ تم تحديث الحساب بنجاح');
+          console.log('📊 Response groupIds:', response.groupIds);
+          console.log('📊 Sent groupIds:', accountData.groupIds);
+          
+          // التحقق من حفظ groupIds
+          if (accountData.groupIds && accountData.groupIds.length > 0) {
+            if (response.groupIds && response.groupIds.length === accountData.groupIds.length) {
+              alert(`✅ تم تحديث الحساب بنجاح\n📊 تم حفظ ${response.groupIds.length} مجموعة`);
+            } else {
+              alert(`⚠️ تم الحفظ لكن هناك مشكلة في المجموعات!\nأرسلت: ${accountData.groupIds.length}\nعادت: ${response.groupIds?.length || 0}`);
+            }
+          } else {
+            alert('✅ تم تحديث الحساب بنجاح');
+          }
+          
           this.loadAccounts();
           this.closeDialog();
         },
