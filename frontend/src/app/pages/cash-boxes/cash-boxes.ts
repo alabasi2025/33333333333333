@@ -112,23 +112,43 @@ export class CashBoxesComponent implements OnInit {
   }
 
   saveCashBox() {
+    console.log('💾 saveCashBox called');
+    console.log('📋 isEditMode:', this.isEditMode);
+    console.log('📦 currentCashBox:', this.currentCashBox);
+    
     if (this.isEditMode && this.currentCashBox.id) {
+      console.log('🔄 Updating cash box ID:', this.currentCashBox.id);
       this.http.put(`${environment.apiUrl}/cash-boxes/${this.currentCashBox.id}`, this.currentCashBox)
         .subscribe({
           next: () => {
+            console.log('✅ Cash box updated successfully');
+            alert('✅ تم تحديث الصندوق بنجاح');
             this.loadCashBoxes();
             this.closeModal();
           },
-          error: (err) => console.error('Error updating cash box:', err)
+          error: (err) => {
+            console.error('❌ Error updating cash box:', err);
+            alert('❌ خطأ في تحديث الصندوق: ' + (err.error?.message || err.message));
+          }
         });
     } else {
+      console.log('➕ Creating new cash box');
+      console.log('📤 POST URL:', `${environment.apiUrl}/cash-boxes`);
+      console.log('📦 Data to send:', this.currentCashBox);
+      
       this.http.post(`${environment.apiUrl}/cash-boxes`, this.currentCashBox)
         .subscribe({
-          next: () => {
+          next: (response) => {
+            console.log('✅ Cash box created successfully:', response);
+            alert('✅ تمت إضافة الصندوق بنجاح');
             this.loadCashBoxes();
             this.closeModal();
           },
-          error: (err) => console.error('Error creating cash box:', err)
+          error: (err) => {
+            console.error('❌ Error creating cash box:', err);
+            console.error('❌ Error details:', err.error);
+            alert('❌ خطأ في إضافة الصندوق: ' + (err.error?.message || err.message));
+          }
         });
     }
   }
