@@ -3,7 +3,6 @@ import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 import { Dashboard } from './dashboard/dashboard';
 import { ChartOfAccountsComponent } from './pages/chart-of-accounts/chart-of-accounts';
 import { FinancialSettingsComponent } from './pages/financial-settings/financial-settings';
-import { SystemConfigComponent } from './system-config/system-config.component';
 import { CashBoxesComponent } from './pages/cash-boxes/cash-boxes';
 
 export const routes: Routes = [
@@ -16,5 +15,4 @@ export const routes: Routes = [
   { path: 'financial/cash-boxes', component: CashBoxesComponent },
   { path: 'inventory', component: Dashboard },
   { path: 'purchases', component: Dashboard },
-  { path: 'system-config', component: SystemConfigComponent },
 ];
