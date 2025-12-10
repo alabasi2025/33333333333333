@@ -50,4 +50,13 @@ export class AccountsController {
     await this.accountsService.remove(id);
     return { success: true };
   }
+
+  @Get('available/intermediate')
+  async getAvailableIntermediateAccounts(
+    @Query('excludeId') excludeId?: string
+  ): Promise<Account[]> {
+    return await this.accountsService.findAvailableIntermediateAccounts(
+      excludeId ? +excludeId : undefined
+    );
+  }
 }

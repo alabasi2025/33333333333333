@@ -15,7 +15,7 @@ export class Bank {
   @Column({ name: 'account_id', nullable: true })
   accountId: number;
 
-  @Column({ name: 'intermediate_account_id', nullable: true })
+  @Column({ name: 'intermediate_account_id', nullable: true, unique: true })
   intermediateAccountId: number;
 
   @ManyToOne(() => Account, { nullable: true })

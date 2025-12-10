@@ -16,7 +16,7 @@ export class CashBox {
   @Column({ name: 'account_id', nullable: true })
   accountId: number;
 
-  @Column({ name: 'intermediate_account_id', nullable: true })
+  @Column({ name: 'intermediate_account_id', nullable: true, unique: true })
   intermediateAccountId: number;
 
   @Column({ type: 'text', nullable: true })

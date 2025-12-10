@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In, Not, IsNull } from 'typeorm';
 import { Account } from './account.entity';
 
 @Injectable()
@@ -106,5 +106,55 @@ export class AccountsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
+  }
+
+  async findAvailableIntermediateAccounts(excludeId?: number): Promise<Account[]> {
+    // Get all intermediate accounts (type = 'other' and parent is 6000)
+    const intermediateParent = await this.accountRepository.findOne({
+      where: { code: '6000' }
+    });
+
+    if (!intermediateParent) {
+      return [];
+    }
+
+    // Get all intermediate accounts
+    const allIntermediateAccounts = await this.accountRepository.find({
+      where: { parentId: intermediateParent.id },
+      order: { code: 'ASC' }
+    });
+
+    // Get used intermediate account IDs from both cash_boxes and banks
+    const { CashBox } = await import('../cash-boxes/cash-box.entity');
+    const { Bank } = await import('../banks/bank.entity');
+    
+    const cashBoxRepo = this.accountRepository.manager.getRepository(CashBox);
+    const bankRepo = this.accountRepository.manager.getRepository(Bank);
+
+    const usedInCashBoxes = await cashBoxRepo.find({
+      where: { intermediateAccountId: Not(IsNull()) },
+      select: ['intermediateAccountId', 'id']
+    });
+
+    const usedInBanks = await bankRepo.find({
+      where: { intermediateAccountId: Not(IsNull()) },
+      select: ['intermediateAccountId', 'id']
+    });
+
+    // Collect used intermediate account IDs, excluding the current entity if editing
+    const usedIds = new Set<number>();
+    usedInCashBoxes.forEach(cb => {
+      if (cb.intermediateAccountId && (!excludeId || cb.id !== excludeId)) {
+        usedIds.add(cb.intermediateAccountId);
+      }
+    });
+    usedInBanks.forEach(bank => {
+      if (bank.intermediateAccountId && (!excludeId || bank.id !== excludeId)) {
+        usedIds.add(bank.intermediateAccountId);
+      }
+    });
+
+    // Filter out used accounts
+    return allIntermediateAccounts.filter(account => !usedIds.has(account.id));
   }
 }

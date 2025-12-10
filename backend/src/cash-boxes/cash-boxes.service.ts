@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CashBox } from './cash-box.entity';
@@ -36,6 +36,16 @@ export class CashBoxesService {
   }
 
   async create(createDto: CreateCashBoxDto): Promise<CashBox> {
+    // Check if intermediate account is already used
+    if (createDto.intermediateAccountId) {
+      const existingCashBox = await this.cashBoxRepository.findOne({
+        where: { intermediateAccountId: createDto.intermediateAccountId }
+      });
+      if (existingCashBox) {
+        throw new BadRequestException('هذا الحساب الوسيط مرتبط بالفعل بصندوق آخر');
+      }
+    }
+    
     const cashBox = this.cashBoxRepository.create({
       ...createDto,
       currentBalance: createDto.openingBalance || 0
@@ -44,6 +54,16 @@ export class CashBoxesService {
   }
 
   async update(id: number, updateDto: UpdateCashBoxDto): Promise<CashBox> {
+    // Check if intermediate account is already used by another cash box
+    if (updateDto.intermediateAccountId) {
+      const existingCashBox = await this.cashBoxRepository.findOne({
+        where: { intermediateAccountId: updateDto.intermediateAccountId }
+      });
+      if (existingCashBox && existingCashBox.id !== id) {
+        throw new BadRequestException('هذا الحساب الوسيط مرتبط بالفعل بصندوق آخر');
+      }
+    }
+    
     await this.cashBoxRepository.update(id, updateDto);
     return this.findOne(id);
   }
