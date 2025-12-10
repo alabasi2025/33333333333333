@@ -8,6 +8,7 @@ interface Account {
   id: number;
   code: string;
   name: string;
+  type?: string;
 }
 
 interface WarehouseGroup {
@@ -72,7 +73,8 @@ export class WarehouseGroupsComponent implements OnInit {
     this.http.get<Account[]>(`${environment.apiUrl}/accounts`)
       .subscribe({
         next: (data) => {
-          this.accounts = data;
+          // فلترة الحسابات لعرض حسابات المخزون فقط
+          this.accounts = data.filter(account => account.type === 'مخزون');
         },
         error: (error) => console.error('خطأ في تحميل الحسابات:', error)
       });
