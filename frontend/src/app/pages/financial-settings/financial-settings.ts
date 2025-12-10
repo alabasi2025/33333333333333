@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { UnitContextService } from '../../services/unit-context.service';
 
 interface AccountGroup {
   id?: number;
@@ -28,15 +29,23 @@ export class FinancialSettingsComponent implements OnInit {
   currentGroup: AccountGroup = { code: '', name: '' };
 
   private apiUrl = '/api/account-groups';
+  private unitContext = inject(UnitContextService);
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadAccountGroups();
+    
+    // Reload when unit changes
+    this.unitContext.selectedUnit$.subscribe(() => {
+      this.loadAccountGroups();
+    });
   }
 
   loadAccountGroups() {
-    this.http.get<AccountGroup[]>(this.apiUrl).subscribe({
+    const unitId = this.unitContext.getSelectedUnitId();
+    const url = unitId ? `${this.apiUrl}?unitId=${unitId}` : this.apiUrl;
+    this.http.get<AccountGroup[]>(url).subscribe({
       next: (data) => {
         this.accountGroups = data;
       },
@@ -75,8 +84,15 @@ export class FinancialSettingsComponent implements OnInit {
       return;
     }
 
+    const unitId = this.unitContext.getSelectedUnitId();
+    if (!unitId) {
+      alert('يرجى اختيار وحدة أولاً');
+      return;
+    }
+    
     if (this.groupDialogMode === 'add') {
-      this.http.post<AccountGroup>(this.apiUrl, this.currentGroup).subscribe({
+      const groupData = { ...this.currentGroup, unitId };
+      this.http.post<AccountGroup>(this.apiUrl, groupData).subscribe({
         next: () => {
           this.loadAccountGroups();
           this.closeGroupDialog();
