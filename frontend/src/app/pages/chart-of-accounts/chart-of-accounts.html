@@ -4,32 +4,35 @@
     <p class="subtitle">إدارة شجرة الحسابات المحاسبية</p>
   </div>
 
-  <div class="toolbar">
+  <div class="search-actions">
     <div class="search-box">
+      <span class="search-icon">🔍</span>
       <input 
         type="text" 
-        placeholder="🔍 البحث في الحسابات..." 
+        placeholder="البحث في الحسابات..." 
         [(ngModel)]="searchTerm"
         (input)="filterAccounts()"
       />
     </div>
     
-    <button class="btn-primary" (click)="openAddDialog()">
+    <button class="btn-add" (click)="openAddDialog()">
       ➕ إضافة حساب رئيسي
     </button>
   </div>
 
-  <div class="accounts-grid">
+  <div class="accounts-list">
     @for (account of filteredAccounts; track account.id) {
-      <div class="account-card" [class.has-children]="account.children && account.children.length > 0">
+      <div class="account-card">
         <div class="account-header" (click)="toggleAccount(account)">
-          <div class="account-info">
+          <div class="account-main-info">
             <span class="account-code">{{ account.code }}</span>
-            <span class="account-name">{{ account.name }}</span>
-            <span class="account-type" [class]="'type-' + account.type">{{ getTypeLabel(account.type) }}</span>
-            @if (account.subType) {
-              <span class="account-subtype">{{ getSubTypeLabel(account.subType) }}</span>
-            }
+            <div class="account-details">
+              <div class="account-name">{{ account.name }}</div>
+              <div class="account-meta">
+                <span class="account-type" [class]="'type-' + account.type">{{ getTypeLabel(account.type) }}</span>
+                <span class="account-level">{{ account.accountLevel === 'main' ? 'رئيسي' : 'فرعي' }}</span>
+              </div>
+            </div>
           </div>
           
           <div class="account-actions">
@@ -39,7 +42,7 @@
             <button class="btn-icon" (click)="editAccount(account, $event)" title="تعديل">
               ✏️
             </button>
-            <button class="btn-icon btn-danger" (click)="deleteAccount(account, $event)" title="حذف">
+            <button class="btn-icon" (click)="deleteAccount(account, $event)" title="حذف">
               🗑️
             </button>
             @if (account.children && account.children.length > 0) {
@@ -53,18 +56,28 @@
             @for (child of account.children; track child.id) {
               <div class="sub-account">
                 <div class="sub-account-info">
-                  <span class="account-code">{{ child.code }}</span>
-                  <span class="account-name">{{ child.name }}</span>
-                  <span class="account-type" [class]="'type-' + child.type">{{ getTypeLabel(child.type) }}</span>
-                  @if (child.subType) {
-                    <span class="account-subtype">{{ getSubTypeLabel(child.subType) }}</span>
-                  }
+                  <span class="sub-account-code">{{ child.code }}</span>
+                  <div class="sub-account-details">
+                    <div class="sub-account-name">{{ child.name }}</div>
+                    <div class="sub-account-meta">
+                      @if (child.subType) {
+                        <span class="sub-type-badge">{{ getSubTypeLabel(child.subType) }}</span>
+                      }
+                      @if (child.groupIds && child.groupIds.length > 0) {
+                        <div class="group-badges">
+                          @for (groupName of getGroupNames(child.groupIds).split(', '); track groupName) {
+                            <span class="group-badge">🏷️ {{ groupName }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
                 </div>
                 <div class="account-actions">
                   <button class="btn-icon" (click)="editAccount(child, $event)" title="تعديل">
                     ✏️
                   </button>
-                  <button class="btn-icon btn-danger" (click)="deleteAccount(child, $event)" title="حذف">
+                  <button class="btn-icon" (click)="deleteAccount(child, $event)" title="حذف">
                     🗑️
                   </button>
                 </div>
