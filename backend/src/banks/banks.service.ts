@@ -12,7 +12,7 @@ export class BanksService {
 
   async findAll(): Promise<Bank[]> {
     return await this.bankRepository.find({
-      relations: ['account'],
+      relations: ['account', 'intermediateAccount'],
       order: { code: 'ASC' },
     });
   }
@@ -20,7 +20,7 @@ export class BanksService {
   async findOne(id: number): Promise<Bank> {
     const bank = await this.bankRepository.findOne({
       where: { id },
-      relations: ['account'],
+      relations: ['account', 'intermediateAccount'],
     });
     
     if (!bank) {

@@ -16,6 +16,9 @@ export class CashBox {
   @Column({ name: 'account_id', nullable: true })
   accountId: number;
 
+  @Column({ name: 'intermediate_account_id', nullable: true })
+  intermediateAccountId: number;
+
   @Column({ type: 'text', nullable: true })
   description: string;
 
@@ -38,6 +41,10 @@ export class CashBox {
   @ManyToOne(() => Account, { nullable: true })
   @JoinColumn({ name: 'account_id' })
   account: Account;
+
+  @ManyToOne(() => Account, { nullable: true })
+  @JoinColumn({ name: 'intermediate_account_id' })
+  intermediateAccount: Account;
 
   @OneToMany(() => CashTransaction, transaction => transaction.cashBox)
   transactions: CashTransaction[];

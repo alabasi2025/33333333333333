@@ -15,9 +15,16 @@ export class Bank {
   @Column({ name: 'account_id', nullable: true })
   accountId: number;
 
+  @Column({ name: 'intermediate_account_id', nullable: true })
+  intermediateAccountId: number;
+
   @ManyToOne(() => Account, { nullable: true })
   @JoinColumn({ name: 'account_id' })
   account: Account;
+
+  @ManyToOne(() => Account, { nullable: true })
+  @JoinColumn({ name: 'intermediate_account_id' })
+  intermediateAccount: Account;
 
   @Column({ name: 'account_number', nullable: true })
   accountNumber: string;

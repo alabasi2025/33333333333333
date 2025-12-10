@@ -19,7 +19,7 @@ export class CashBoxesService {
   // Cash Boxes
   async findAll(): Promise<CashBox[]> {
     return this.cashBoxRepository.find({ 
-      relations: ['account'],
+      relations: ['account', 'intermediateAccount'],
       order: { id: 'DESC' }
     });
   }
@@ -27,7 +27,7 @@ export class CashBoxesService {
   async findOne(id: number): Promise<CashBox> {
     const cashBox = await this.cashBoxRepository.findOne({
       where: { id },
-      relations: ['account', 'transactions']
+      relations: ['account', 'intermediateAccount', 'transactions']
     });
     if (!cashBox) {
       throw new NotFoundException(`Cash box with ID ${id} not found`);
