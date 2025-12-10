@@ -12,6 +12,9 @@ import { Branch } from './branches/branch.entity';
 import { CompaniesModule } from './companies/companies.module';
 import { UnitsModule } from './units/units.module';
 import { BranchesModule } from './branches/branches.module';
+import { CashBoxesModule } from './cash-boxes/cash-boxes.module';
+import { CashBox } from './cash-boxes/cash-box.entity';
+import { CashTransaction } from './cash-boxes/cash-transaction.entity';
 
 @Module({
   imports: [
@@ -22,7 +25,7 @@ import { BranchesModule } from './branches/branches.module';
       username: 'accounting_user',
       password: 'Acc@2025#Secure',
       database: 'accounting_system',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction],
       synchronize: true, // Auto-create tables (only for development)
       logging: false,
     }),
@@ -32,6 +35,7 @@ import { BranchesModule } from './branches/branches.module';
     CompaniesModule,
     UnitsModule,
     BranchesModule,
+    CashBoxesModule,
   ],
 })
 export class AppModule {}
