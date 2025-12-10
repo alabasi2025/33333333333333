@@ -124,7 +124,6 @@ export class JournalEntriesService {
     data: {
       date?: string;
       description?: string;
-      reference?: string;
       lines?: Array<{
         accountId: number;
         debit: number;
@@ -138,7 +137,6 @@ export class JournalEntriesService {
     // تحديث بيانات القيد
     if (data.date) entry.date = new Date(data.date) as any;
     if (data.description !== undefined) entry.description = data.description;
-    if (data.reference !== undefined) entry.reference = data.reference;
 
     // تحديث السطور إذا تم تعديلها
     if (data.lines) {

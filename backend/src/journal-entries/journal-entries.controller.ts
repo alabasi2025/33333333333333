@@ -46,7 +46,6 @@ export class JournalEntriesController {
     @Body() data: {
       date: string;
       description: string;
-      reference?: string;
       lines: Array<{
         accountId: number;
         debit: number;
@@ -83,7 +82,6 @@ export class JournalEntriesController {
     @Body() data: {
       date?: string;
       description?: string;
-      reference?: string;
       lines?: Array<{
         accountId: number;
         debit: number;
@@ -99,7 +97,7 @@ export class JournalEntriesController {
     }
 
     // منع تعديل القيود المرتبطة بسندات
-    if (entry.reference && entry.reference.startsWith('voucher')) {
+    if (entry.referenceType === 'voucher') {
       throw new HttpException(
         'لا يمكن تعديل القيود المرتبطة بالسندات',
         HttpStatus.FORBIDDEN,
@@ -131,7 +129,7 @@ export class JournalEntriesController {
     }
 
     // منع حذف القيود المرتبطة بسندات
-    if (entry.reference && entry.reference.startsWith('voucher')) {
+    if (entry.referenceType === 'voucher') {
       throw new HttpException(
         'لا يمكن حذف القيود المرتبطة بالسندات. يجب حذف السند أولاً.',
         HttpStatus.FORBIDDEN,
