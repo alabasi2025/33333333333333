@@ -1,0 +1,122 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-title">
+        <span class="icon">📊</span>
+        <h1>ميزان المراجعة</h1>
+      </div>
+      <p class="header-subtitle">عرض أرصدة الحسابات والتحقق من توازن القيود المحاسبية</p>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- الفلاتر -->
+    <div class="filters-card">
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>من تاريخ</label>
+          <input type="date" [(ngModel)]="startDate" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label>إلى تاريخ</label>
+          <input type="date" [(ngModel)]="endDate" class="form-control">
+        </div>
+        <div class="filter-actions">
+          <button (click)="loadReport()" class="btn btn-primary">
+            🔍 عرض التقرير
+          </button>
+          <button (click)="resetFilters()" class="btn btn-secondary">
+            ↺ إعادة تعيين
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- التقرير -->
+    <div class="report-card" *ngIf="report && !loading">
+      <div class="report-actions no-print">
+        <button (click)="printReport()" class="btn btn-secondary">
+          🖨️ طباعة
+        </button>
+        <button (click)="exportToExcel()" class="btn btn-success">
+          📊 تصدير Excel
+        </button>
+      </div>
+
+      <!-- حالة التوازن -->
+      <div class="balance-status" [class.balanced]="report.isBalanced" [class.unbalanced]="!report.isBalanced">
+        <span class="status-icon">{{ report.isBalanced ? '✅' : '⚠️' }}</span>
+        <span class="status-text">
+          {{ report.isBalanced ? 'الميزان متوازن' : 'الميزان غير متوازن - يوجد فرق: ' + report.difference.toFixed(2) + ' ريال' }}
+        </span>
+      </div>
+
+      <!-- الجدول -->
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>رقم الحساب</th>
+              <th>اسم الحساب</th>
+              <th class="number-col">المدين</th>
+              <th class="number-col">الدائن</th>
+              <th class="number-col">الرصيد</th>
+              <th>نوع الرصيد</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of report.items">
+              <td class="code-col">{{ item.accountCode }}</td>
+              <td class="name-col">{{ item.accountName }}</td>
+              <td class="number-col">{{ item.debit.toFixed(2) }}</td>
+              <td class="number-col">{{ item.credit.toFixed(2) }}</td>
+              <td class="number-col">{{ item.balance.toFixed(2) }}</td>
+              <td class="balance-type">
+                <span class="badge" [class.badge-debit]="item.balanceType === 'debit'" [class.badge-credit]="item.balanceType === 'credit'">
+                  {{ item.balanceType === 'debit' ? 'مدين' : 'دائن' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2" class="total-label">الإجمالي</td>
+              <td class="number-col total-value">{{ report.totalDebit.toFixed(2) }}</td>
+              <td class="number-col total-value">{{ report.totalCredit.toFixed(2) }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- ملخص -->
+      <div class="summary-section">
+        <div class="summary-item">
+          <span class="summary-label">إجمالي المدين:</span>
+          <span class="summary-value debit">{{ report.totalDebit.toFixed(2) }} ريال</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">إجمالي الدائن:</span>
+          <span class="summary-value credit">{{ report.totalCredit.toFixed(2) }} ريال</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">الفرق:</span>
+          <span class="summary-value" [class.error]="!report.isBalanced">{{ report.difference.toFixed(2) }} ريال</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- حالة التحميل -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>جاري تحميل التقرير...</p>
+    </div>
+
+    <!-- حالة فارغة -->
+    <div class="empty-state" *ngIf="!report && !loading">
+      <div class="empty-icon">📊</div>
+      <h3>لا توجد بيانات</h3>
+      <p>لا توجد قيود محاسبية في الفترة المحددة</p>
+    </div>
+  </div>
+</div>

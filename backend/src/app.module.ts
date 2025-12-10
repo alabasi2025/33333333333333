@@ -22,6 +22,7 @@ import { Voucher } from './vouchers/voucher.entity';
 import { JournalEntriesModule } from './journal-entries/journal-entries.module';
 import { JournalEntry } from './journal-entries/journal-entry.entity';
 import { JournalEntryLine } from './journal-entries/journal-entry-line.entity';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { JournalEntryLine } from './journal-entries/journal-entry-line.entity';
     BanksModule,
     VouchersModule,
     JournalEntriesModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

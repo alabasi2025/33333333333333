@@ -1,0 +1,156 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { JournalEntry } from '../journal-entries/journal-entry.entity';
+import { JournalEntryLine } from '../journal-entries/journal-entry-line.entity';
+import { Account } from '../accounts/account.entity';
+
+interface TrialBalanceItem {
+  accountCode: string;
+  accountName: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  balanceType: 'debit' | 'credit';
+}
+
+interface TrialBalanceReport {
+  items: TrialBalanceItem[];
+  totalDebit: number;
+  totalCredit: number;
+  difference: number;
+  isBalanced: boolean;
+}
+
+@Injectable()
+export class ReportsService {
+  constructor(
+    @InjectRepository(JournalEntryLine)
+    private journalEntryLineRepository: Repository<JournalEntryLine>,
+    @InjectRepository(Account)
+    private accountRepository: Repository<Account>,
+  ) {}
+
+  async getTrialBalance(startDate?: string, endDate?: string): Promise<TrialBalanceReport> {
+    // بناء الاستعلام
+    let query = this.journalEntryLineRepository
+      .createQueryBuilder('line')
+      .leftJoinAndSelect('line.account', 'account')
+      .leftJoinAndSelect('line.journalEntry', 'entry')
+      .where('entry.isPosted = :isPosted', { isPosted: true });
+
+    // تطبيق فلتر التاريخ
+    if (startDate) {
+      query = query.andWhere('entry.date >= :startDate', { startDate });
+    }
+    if (endDate) {
+      query = query.andWhere('entry.date <= :endDate', { endDate });
+    }
+
+    const lines = await query.getMany();
+
+    // حساب المجاميع لكل حساب
+    const accountTotals = new Map<number, { code: string; name: string; debit: number; credit: number }>();
+
+    for (const line of lines) {
+      const accountId = line.accountId;
+      if (!accountTotals.has(accountId)) {
+        accountTotals.set(accountId, {
+          code: line.account.code,
+          name: line.account.name,
+          debit: 0,
+          credit: 0,
+        });
+      }
+
+      const totals = accountTotals.get(accountId)!;
+      totals.debit += parseFloat(line.debit.toString());
+      totals.credit += parseFloat(line.credit.toString());
+    }
+
+    // تحويل إلى مصفوفة وحساب الأرصدة
+    const items: TrialBalanceItem[] = [];
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    for (const [accountId, totals] of accountTotals.entries()) {
+      const balance = totals.debit - totals.credit;
+      const balanceType = balance >= 0 ? 'debit' : 'credit';
+
+      items.push({
+        accountCode: totals.code,
+        accountName: totals.name,
+        debit: totals.debit,
+        credit: totals.credit,
+        balance: Math.abs(balance),
+        balanceType,
+      });
+
+      totalDebit += totals.debit;
+      totalCredit += totals.credit;
+    }
+
+    // ترتيب حسب رقم الحساب
+    items.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+
+    const difference = Math.abs(totalDebit - totalCredit);
+    const isBalanced = difference < 0.01;
+
+    return {
+      items,
+      totalDebit,
+      totalCredit,
+      difference,
+      isBalanced,
+    };
+  }
+
+  async getAccountStatement(accountId: number, startDate?: string, endDate?: string) {
+    let query = this.journalEntryLineRepository
+      .createQueryBuilder('line')
+      .leftJoinAndSelect('line.journalEntry', 'entry')
+      .leftJoinAndSelect('line.account', 'account')
+      .where('line.accountId = :accountId', { accountId })
+      .andWhere('entry.isPosted = :isPosted', { isPosted: true });
+
+    if (startDate) {
+      query = query.andWhere('entry.date >= :startDate', { startDate });
+    }
+    if (endDate) {
+      query = query.andWhere('entry.date <= :endDate', { endDate });
+    }
+
+    query = query.orderBy('entry.date', 'ASC').addOrderBy('entry.id', 'ASC');
+
+    const lines = await query.getMany();
+
+    let balance = 0;
+    const transactions = lines.map(line => {
+      const debit = parseFloat(line.debit.toString());
+      const credit = parseFloat(line.credit.toString());
+      balance += debit - credit;
+
+      return {
+        date: line.journalEntry.date,
+        entryNumber: line.journalEntry.entryNumber,
+        description: line.description || line.journalEntry.description,
+        debit,
+        credit,
+        balance,
+      };
+    });
+
+    const account = await this.accountRepository.findOne({ where: { id: accountId } });
+
+    return {
+      account: {
+        code: account?.code,
+        name: account?.name,
+      },
+      transactions,
+      totalDebit: lines.reduce((sum, line) => sum + parseFloat(line.debit.toString()), 0),
+      totalCredit: lines.reduce((sum, line) => sum + parseFloat(line.credit.toString()), 0),
+      finalBalance: balance,
+    };
+  }
+}
