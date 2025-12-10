@@ -33,7 +33,7 @@ export class TrialBalanceComponent implements OnInit {
   startDate: string = '';
   endDate: string = '';
   
-  private apiUrl = 'http://72.61.111.217/api';
+  private apiUrl = '/api';
 
   constructor(private http: HttpClient) {}
 
