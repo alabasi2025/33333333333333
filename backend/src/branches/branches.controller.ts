@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/
 import { BranchesService } from './branches.service';
 import { Branch } from './branch.entity';
 
-@Controller('api/branches')
+@Controller('branches')
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
