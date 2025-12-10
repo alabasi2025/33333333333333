@@ -1,0 +1,118 @@
+<div class="cash-boxes-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>💼 الصناديق</h1>
+      <p class="subtitle">إدارة الصناديق النقدية</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="searchCashBoxes()"
+        placeholder="البحث في الصناديق..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة صندوق
+    </button>
+  </div>
+
+  <div class="cash-boxes-grid" *ngIf="filteredCashBoxes.length > 0">
+    <div class="cash-box-card" *ngFor="let box of filteredCashBoxes">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>{{ box.name }}</h3>
+          <span class="code-badge">{{ box.code }}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" (click)="openModal(box)" title="تعديل">✏️</button>
+          <button class="btn-icon" (click)="deleteCashBox(box.id)" title="حذف">🗑️</button>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="balance-info">
+          <div class="balance-item">
+            <span class="label">الرصيد الافتتاحي:</span>
+            <span class="value">{{ box.openingBalance | number:'1.2-2' }} ر.ي</span>
+          </div>
+          <div class="balance-item current">
+            <span class="label">الرصيد الحالي:</span>
+            <span class="value">{{ box.currentBalance | number:'1.2-2' }} ر.ي</span>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="box.description">{{ box.description }}</p>
+        
+        <div class="card-footer">
+          <span 
+            class="status-badge" 
+            [class.active]="box.isActive"
+            [class.inactive]="!box.isActive"
+            (click)="toggleStatus(box)"
+          >
+            {{ box.isActive ? 'نشط' : 'غير نشط' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredCashBoxes.length === 0">
+    <div class="empty-icon">💼</div>
+    <h3>لا توجد صناديق</h3>
+    <p>قم بإضافة أول صندوق نقدي</p>
+    <button class="btn-primary" (click)="openModal()">إضافة صندوق</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل صندوق' : 'إضافة صندوق جديد' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم الصندوق *</label>
+        <input type="text" [(ngModel)]="currentCashBox.name" class="form-control" required />
+      </div>
+      
+      <div class="form-group">
+        <label>الكود *</label>
+        <input type="text" [(ngModel)]="currentCashBox.code" class="form-control" required />
+      </div>
+      
+      <div class="form-group">
+        <label>الرصيد الافتتاحي</label>
+        <input type="number" [(ngModel)]="currentCashBox.openingBalance" class="form-control" />
+      </div>
+      
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea [(ngModel)]="currentCashBox.description" class="form-control" rows="3"></textarea>
+      </div>
+      
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="currentCashBox.isActive" />
+          <span>نشط</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveCashBox()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>
