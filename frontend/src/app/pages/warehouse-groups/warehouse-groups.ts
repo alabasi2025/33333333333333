@@ -73,8 +73,8 @@ export class WarehouseGroupsComponent implements OnInit {
     this.http.get<Account[]>(`${environment.apiUrl}/accounts`)
       .subscribe({
         next: (data) => {
-          // فلترة الحسابات لعرض حسابات المخزون فقط
-          this.accounts = data.filter(account => account.type === 'مخزون');
+          // فلترة الحسابات لعرض حسابات الأصول فقط (المخازن تعتبر أصول)
+          this.accounts = data.filter(account => account.type === 'asset');
         },
         error: (error) => console.error('خطأ في تحميل الحسابات:', error)
       });
