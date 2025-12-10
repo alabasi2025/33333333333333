@@ -6,6 +6,9 @@ import { AccountGroupsModule } from './account-groups/account-groups.module';
 import { Account } from './accounts/account.entity';
 import { AccountGroup } from './account-groups/account-group.entity';
 import { Supplier } from './suppliers/supplier.entity';
+import { Company } from './companies/company.entity';
+import { Unit } from './units/unit.entity';
+import { Branch } from './branches/branch.entity';
 
 @Module({
   imports: [
@@ -16,7 +19,7 @@ import { Supplier } from './suppliers/supplier.entity';
       username: 'accounting_user',
       password: 'Acc@2025#Secure',
       database: 'accounting_system',
-      entities: [Account, AccountGroup, Supplier],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch],
       synchronize: true, // Auto-create tables (only for development)
       logging: false,
     }),

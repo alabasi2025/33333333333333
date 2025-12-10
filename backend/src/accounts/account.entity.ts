@@ -36,6 +36,9 @@ export class Account {
   @Column('simple-array', { name: 'group_ids', nullable: true })
   groupIds: number[];
 
+  @Column({ name: 'unit_id' })
+  unitId: number;
+
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
