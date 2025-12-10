@@ -33,7 +33,7 @@ export class Account {
   @OneToMany(() => Account, (account) => account.parent)
   children: Account[];
 
-  @Column('simple-array', { name: 'group_ids', nullable: true })
+  @Column('json', { name: 'group_ids', nullable: true })
   groupIds: number[];
 
   @Column({ name: 'unit_id', nullable: true })
