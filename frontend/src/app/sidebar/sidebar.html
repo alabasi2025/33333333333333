@@ -2,6 +2,19 @@
   <div class="sidebar-header">
     <h2>نظام SEMOP</h2>
     <p class="subtitle">نظام تخطيط موارد المؤسسات</p>
+    
+    <!-- Unit Selector -->
+    <div class="unit-selector">
+      <label class="unit-label">
+        <span class="icon">🏢</span>
+        <span>الوحدة:</span>
+      </label>
+      <select class="unit-select" [(ngModel)]="selectedUnitId" (change)="onUnitChange()">
+        <option *ngFor="let unit of units" [value]="unit.id">
+          {{ unit.name }}
+        </option>
+      </select>
+    </div>
   </div>
   
   <nav class="sidebar-nav">
