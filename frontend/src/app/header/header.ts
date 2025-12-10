@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CompanyService, Unit } from '../services/company.service';
 import { UnitContextService } from '../services/unit-context.service';
@@ -17,42 +17,49 @@ export class Header implements OnInit {
 
   constructor(
     private companyService: CompanyService,
-    private unitContext: UnitContextService
+    private unitContext: UnitContextService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    this.loadUnits();
-    
-    // Subscribe to unit changes
+    // Subscribe to unit changes first
     this.unitContext.selectedUnit$.subscribe(unit => {
+      console.log('📡 Unit changed in context:', unit);
       this.selectedUnit = unit;
+      this.cdr.detectChanges();
     });
+    
+    // Then load units
+    this.loadUnits();
   }
 
   loadUnits() {
     this.companyService.getUnits().subscribe({
       next: (data) => {
+        console.log('📦 Units loaded:', data.length);
         this.units = data;
         
         // If no unit selected, select the first one
-        if (!this.selectedUnit && data.length > 0) {
+        const currentUnit = this.unitContext.getSelectedUnit();
+        if (!currentUnit && data.length > 0) {
+          console.log('🎯 Auto-selecting first unit');
           this.selectUnit(data[0]);
         }
       },
-      error: (err) => console.error('خطأ في تحميل الوحدات:', err)
+      error: (err) => console.error('❌ خطأ في تحميل الوحدات:', err)
     });
   }
 
   selectUnit(unit: Unit) {
-    console.log('👆 User selected unit:', unit);
-    this.selectedUnit = unit;
+    console.log('👆 User clicked on unit:', unit.name);
     this.unitContext.setSelectedUnit(unit);
     this.showUnitDropdown = false;
-    console.log('✅ Unit selection complete');
   }
 
-  toggleUnitDropdown() {
+  toggleUnitDropdown(event: Event) {
+    event.stopPropagation();
     this.showUnitDropdown = !this.showUnitDropdown;
+    console.log('🔽 Dropdown toggled:', this.showUnitDropdown);
   }
 
   closeDropdown() {
