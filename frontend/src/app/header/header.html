@@ -3,19 +3,5 @@
     <div class="header-left">
       <h1 class="company-name">شركة أعمال العباسي</h1>
     </div>
-    
-    <div class="header-right">
-      <div class="unit-selector-wrapper">
-        <label class="unit-label">
-          <span class="unit-icon">🏢</span>
-          <span class="unit-text">الوحدة الحالية:</span>
-        </label>
-        <select class="unit-select" [(ngModel)]="selectedUnitId" (change)="onUnitChange()">
-          <option *ngFor="let unit of units" [value]="unit.id">
-            {{ unit.name }}
-          </option>
-        </select>
-      </div>
-    </div>
   </div>
 </header>

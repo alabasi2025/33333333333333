@@ -1,8 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { UnitContextService } from '../../services/unit-context.service';
 
 interface AccountGroup {
   id?: number;
@@ -29,23 +28,15 @@ export class FinancialSettingsComponent implements OnInit {
   currentGroup: AccountGroup = { code: '', name: '' };
 
   private apiUrl = '/api/account-groups';
-  private unitContext = inject(UnitContextService);
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadAccountGroups();
-    
-    // Reload when unit changes
-    this.unitContext.selectedUnit$.subscribe(() => {
-      this.loadAccountGroups();
-    });
   }
 
   loadAccountGroups() {
-    const unitId = this.unitContext.getSelectedUnitId();
-    const url = unitId ? `${this.apiUrl}?unitId=${unitId}` : this.apiUrl;
-    this.http.get<AccountGroup[]>(url).subscribe({
+    this.http.get<AccountGroup[]>(this.apiUrl).subscribe({
       next: (data) => {
         this.accountGroups = data;
       },
@@ -83,16 +74,9 @@ export class FinancialSettingsComponent implements OnInit {
       alert('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
-
-    const unitId = this.unitContext.getSelectedUnitId();
-    if (!unitId) {
-      alert('يرجى اختيار وحدة أولاً');
-      return;
-    }
     
     if (this.groupDialogMode === 'add') {
-      const groupData = { ...this.currentGroup, unitId };
-      this.http.post<AccountGroup>(this.apiUrl, groupData).subscribe({
+      this.http.post<AccountGroup>(this.apiUrl, this.currentGroup).subscribe({
         next: () => {
           this.loadAccountGroups();
           this.closeGroupDialog();
@@ -114,6 +98,4 @@ export class FinancialSettingsComponent implements OnInit {
     this.showGroupDialog = false;
     this.currentGroup = { code: '', name: '' };
   }
-
-
 }

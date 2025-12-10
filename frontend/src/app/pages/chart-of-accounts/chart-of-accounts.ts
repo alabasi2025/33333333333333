@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { UnitContextService } from '../../services/unit-context.service';
 
 interface Account {
   id?: number;
@@ -52,7 +51,6 @@ export class ChartOfAccountsComponent implements OnInit {
   private apiUrl = '/api/accounts';
   private groupsApiUrl = '/api/account-groups';
   private http = inject(HttpClient);
-  private unitContext = inject(UnitContextService);
 
   constructor() {
     console.log('🚀 ChartOfAccountsComponent constructor called');
@@ -62,17 +60,10 @@ export class ChartOfAccountsComponent implements OnInit {
     console.log('🎯 ngOnInit called - loading data...');
     this.loadAccounts();
     this.loadAccountGroups();
-    
-    // Reload when unit changes
-    this.unitContext.selectedUnit$.subscribe(() => {
-      this.loadAccounts();
-      this.loadAccountGroups();
-    });
   }
 
   loadAccountGroups() {
-    const unitId = this.unitContext.getSelectedUnitId();
-    const url = unitId ? `${this.groupsApiUrl}?unitId=${unitId}` : this.groupsApiUrl;
+    const url = this.groupsApiUrl;
     this.http.get<AccountGroup[]>(url).subscribe({
       next: (data) => {
         this.accountGroups = data;
@@ -82,8 +73,7 @@ export class ChartOfAccountsComponent implements OnInit {
   }
 
   loadAccounts() {
-    const unitId = this.unitContext.getSelectedUnitId();
-    const url = unitId ? `${this.apiUrl}?unitId=${unitId}` : this.apiUrl;
+    const url = this.apiUrl;
     console.log('📊 Loading accounts from:', url);
     this.http.get<Account[]>(url).subscribe({
       next: (data) => {
@@ -219,16 +209,9 @@ export class ChartOfAccountsComponent implements OnInit {
       alert('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
-    
-    const unitId = this.unitContext.getSelectedUnitId();
-    if (!unitId) {
-      alert('يرجى اختيار وحدة أولاً');
-      return;
-    }
 
     if (this.dialogMode === 'add') {
-      const accountData = { ...this.currentAccount, unitId };
-      this.http.post<Account>(this.apiUrl, accountData).subscribe({
+      this.http.post<Account>(this.apiUrl, this.currentAccount).subscribe({
         next: () => {
           this.loadAccounts();
           this.closeDialog();
