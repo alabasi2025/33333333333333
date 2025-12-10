@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface Unit {
   id: number;
@@ -15,48 +17,113 @@ interface Unit {
   templateUrl: './unit-selector.component.html',
   styleUrls: ['./unit-selector.component.css']
 })
-export class UnitSelectorComponent {
-  // بيانات وهمية للاختبار فقط
-  units: Unit[] = [
-    {
-      id: 1,
-      name: 'وحدة أعمال الحديدة',
-      code: 'HODEIDAH',
-      activeModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales']
-    },
-    {
-      id: 2,
-      name: 'وحدة أعمال العباسي',
-      code: 'ALABASI',
-      activeModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales', 'hr']
-    },
-    {
-      id: 3,
-      name: 'وحدة محطة أعمال محطة معبر',
-      code: 'MABAR',
-      activeModules: ['financial', 'inventory', 'suppliers', 'purchases']
-    }
-  ];
-
-  selectedUnit: Unit = this.units[0];
+export class UnitSelectorComponent implements OnInit {
+  units: Unit[] = [];
+  selectedUnit: Unit | null = null;
   isDropdownOpen = false;
+  isLoading = true;
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.loadUnits();
+  }
+
+  loadUnits() {
+    console.log('🔄 جاري تحميل الوحدات من API...');
+    
+    this.http.get<any[]>(`${environment.apiUrl}/units`).subscribe({
+      next: (units) => {
+        console.log('✅ تم تحميل الوحدات:', units);
+        
+        // تحويل البيانات من API إلى الصيغة المطلوبة
+        this.units = units.map(unit => ({
+          id: unit.id,
+          name: unit.name,
+          code: unit.code,
+          activeModules: unit.activeModules || []
+        }));
+
+        // تحميل الوحدة المحفوظة أو اختيار الأولى
+        const savedUnitId = localStorage.getItem('selectedUnitId');
+        if (savedUnitId) {
+          const savedUnit = this.units.find(u => u.id === parseInt(savedUnitId));
+          this.selectedUnit = savedUnit || this.units[0];
+        } else {
+          this.selectedUnit = this.units[0];
+        }
+
+        this.isLoading = false;
+        
+        // حفظ الوحدة المختارة
+        if (this.selectedUnit) {
+          this.saveSelectedUnit(this.selectedUnit);
+        }
+      },
+      error: (error) => {
+        console.error('❌ خطأ في تحميل الوحدات:', error);
+        this.isLoading = false;
+        
+        // استخدام بيانات وهمية في حالة الخطأ
+        this.useFallbackData();
+      }
+    });
+  }
+
+  useFallbackData() {
+    console.log('⚠️ استخدام البيانات الوهمية...');
+    this.units = [
+      {
+        id: 1,
+        name: 'وحدة أعمال الحديدة',
+        code: 'HODEIDAH',
+        activeModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales']
+      },
+      {
+        id: 2,
+        name: 'وحدة أعمال العباسي',
+        code: 'ALABASI',
+        activeModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales', 'hr']
+      },
+      {
+        id: 3,
+        name: 'وحدة محطة أعمال محطة معبر',
+        code: 'MABAR',
+        activeModules: ['financial', 'inventory', 'suppliers', 'purchases']
+      }
+    ];
+    this.selectedUnit = this.units[0];
+  }
 
   toggleDropdown() {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
 
   selectUnit(unit: Unit) {
+    console.log('✅ تم اختيار الوحدة:', unit.name);
     this.selectedUnit = unit;
     this.isDropdownOpen = false;
-    console.log('✅ تم اختيار الوحدة:', unit.name);
     
     // حفظ في localStorage
+    this.saveSelectedUnit(unit);
+    
+    // إطلاق حدث لإعلام باقي المكونات
+    window.dispatchEvent(new CustomEvent('unitChanged', { 
+      detail: { unitId: unit.id, unitName: unit.name } 
+    }));
+    
+    // إعادة تحميل الصفحة لتحديث البيانات
+    window.location.reload();
+  }
+
+  saveSelectedUnit(unit: Unit) {
     localStorage.setItem('selectedUnitId', unit.id.toString());
     localStorage.setItem('selectedUnitName', unit.name);
+    localStorage.setItem('selectedUnitCode', unit.code);
   }
 
   getModuleCount(unit: Unit): number {
-    return unit.activeModules.length;
+    return unit.activeModules?.length || 0;
   }
 
   getModuleIcon(module: string): string {
