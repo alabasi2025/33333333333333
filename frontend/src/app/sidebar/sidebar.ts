@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { UnitContextService } from '../services/unit-context.service';
 import { Unit } from '../services/company.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-sidebar',
@@ -26,7 +27,9 @@ export class Sidebar implements OnInit {
     console.log('🚀 Sidebar ngOnInit called');
     // Load units
     console.log('📦 Loading units from API...');
-    this.http.get<Unit[]>('http://72.61.111.217/api/units').subscribe({
+    const apiUrl = `${environment.apiUrl}/units`;
+    console.log('🌐 API URL:', apiUrl);
+    this.http.get<Unit[]>(apiUrl).subscribe({
       next: (data) => {
         console.log('✅ Units loaded successfully:', data);
         console.log('📊 Number of units:', data.length);
