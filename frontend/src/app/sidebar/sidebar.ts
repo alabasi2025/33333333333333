@@ -23,9 +23,13 @@ export class Sidebar implements OnInit {
   ) {}
 
   ngOnInit() {
+    console.log('🚀 Sidebar ngOnInit called');
     // Load units
+    console.log('📦 Loading units from API...');
     this.http.get<Unit[]>('http://72.61.111.217/api/units').subscribe({
       next: (data) => {
+        console.log('✅ Units loaded successfully:', data);
+        console.log('📊 Number of units:', data.length);
         this.units = data;
         
         // Check if there's a saved unit
@@ -38,7 +42,10 @@ export class Sidebar implements OnInit {
           this.unitContext.setSelectedUnit(data[0]);
         }
       },
-      error: (err) => console.error('Error loading units:', err)
+      error: (err) => {
+        console.error('❌ Error loading units:', err);
+        console.error('🔴 Error details:', JSON.stringify(err));
+      }
     });
 
     // Subscribe to unit changes
