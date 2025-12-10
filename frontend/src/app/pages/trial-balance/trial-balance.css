@@ -403,3 +403,33 @@
     flex-direction: column;
   }
 }
+
+.error-state {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.error-state h3 {
+  color: #dc3545;
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+}
+
+.error-state p {
+  color: #666;
+  margin: 0 0 25px 0;
+  font-size: 1.1rem;
+}
+
+.error-state .btn {
+  padding: 12px 30px;
+  font-size: 1rem;
+}

@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 interface TrialBalanceItem {
   accountCode: string;
@@ -23,26 +23,30 @@ interface TrialBalanceReport {
 @Component({
   selector: 'app-trial-balance',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './trial-balance.html',
   styleUrls: ['./trial-balance.css']
 })
 export class TrialBalanceComponent implements OnInit {
+  private http = inject(HttpClient);
+  
   report: TrialBalanceReport | null = null;
   loading = false;
+  error: string | null = null;
   startDate: string = '';
   endDate: string = '';
   
   private apiUrl = '/api';
 
-  constructor(private http: HttpClient) {}
-
   ngOnInit() {
+    console.log('TrialBalanceComponent initialized');
     this.loadReport();
   }
 
   loadReport() {
+    console.log('Loading trial balance report...');
     this.loading = true;
+    this.error = null;
     
     let url = `${this.apiUrl}/reports/trial-balance`;
     const params: string[] = [];
@@ -58,14 +62,17 @@ export class TrialBalanceComponent implements OnInit {
       url += '?' + params.join('&');
     }
 
+    console.log('Fetching from URL:', url);
+
     this.http.get<TrialBalanceReport>(url).subscribe({
       next: (data) => {
+        console.log('Data received:', data);
         this.report = data;
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading trial balance:', error);
-        alert('حدث خطأ أثناء تحميل ميزان المراجعة');
+        this.error = 'حدث خطأ أثناء تحميل ميزان المراجعة: ' + (error.message || 'خطأ غير معروف');
         this.loading = false;
       }
     });

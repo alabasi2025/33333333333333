@@ -112,8 +112,16 @@
       <p>جاري تحميل التقرير...</p>
     </div>
 
+    <!-- حالة الخطأ -->
+    <div class="error-state" *ngIf="error && !loading">
+      <div class="error-icon">⚠️</div>
+      <h3>حدث خطأ</h3>
+      <p>{{ error }}</p>
+      <button (click)="loadReport()" class="btn btn-primary">إعادة المحاولة</button>
+    </div>
+
     <!-- حالة فارغة -->
-    <div class="empty-state" *ngIf="!report && !loading">
+    <div class="empty-state" *ngIf="!report && !loading && !error">
       <div class="empty-icon">📊</div>
       <h3>لا توجد بيانات</h3>
       <p>لا توجد قيود محاسبية في الفترة المحددة</p>
