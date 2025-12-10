@@ -29,7 +29,7 @@ export class ChartOfAccountsComponent implements OnInit {
   currentAccount: Account = { code: '', name: '', type: 'asset' };
   parentAccount: Account | null = null;
 
-  private apiUrl = 'http://localhost:3000/api/accounts';
+  private apiUrl = '/api/accounts';
 
   constructor(private http: HttpClient) {}
 
