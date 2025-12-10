@@ -27,6 +27,9 @@
             <span class="account-code">{{ account.code }}</span>
             <span class="account-name">{{ account.name }}</span>
             <span class="account-type" [class]="'type-' + account.type">{{ getTypeLabel(account.type) }}</span>
+            @if (account.subType) {
+              <span class="account-subtype">{{ getSubTypeLabel(account.subType) }}</span>
+            }
           </div>
           
           <div class="account-actions">
@@ -53,6 +56,9 @@
                   <span class="account-code">{{ child.code }}</span>
                   <span class="account-name">{{ child.name }}</span>
                   <span class="account-type" [class]="'type-' + child.type">{{ getTypeLabel(child.type) }}</span>
+                  @if (child.subType) {
+                    <span class="account-subtype">{{ getSubTypeLabel(child.subType) }}</span>
+                  }
                 </div>
                 <div class="account-actions">
                   <button class="btn-icon" (click)="editAccount(child, $event)" title="تعديل">
@@ -89,14 +95,26 @@
       </div>
       
       <div class="dialog-body">
-        <div class="form-group">
-          <label>رقم الحساب *</label>
-          <input 
-            type="text" 
-            [(ngModel)]="currentAccount.code" 
-            placeholder="مثال: 1000"
-            [disabled]="dialogMode === 'edit'"
-          />
+        <div class="form-row">
+          <div class="form-group">
+            <label>رقم الحساب *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="currentAccount.code" 
+              placeholder="مثال: 1000"
+              [disabled]="dialogMode === 'edit'"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>رقم الترتيب *</label>
+            <input 
+              type="number" 
+              [(ngModel)]="currentAccount.sortOrder" 
+              placeholder="1"
+              min="1"
+            />
+          </div>
         </div>
 
         <div class="form-group">
@@ -118,6 +136,28 @@
             <option value="expense">مصروفات</option>
           </select>
         </div>
+
+        <div class="form-group">
+          <label>مستوى الحساب *</label>
+          <select [(ngModel)]="currentAccount.accountLevel" (change)="onAccountLevelChange()">
+            <option value="main">رئيسي</option>
+            <option value="sub">فرعي</option>
+          </select>
+        </div>
+
+        @if (currentAccount.accountLevel === 'sub') {
+          <div class="form-group">
+            <label>نوع الحساب الفرعي *</label>
+            <select [(ngModel)]="currentAccount.subType">
+              <option value="general">عام</option>
+              <option value="cash">صندوق</option>
+              <option value="bank">بنك</option>
+              <option value="supplier">مورد</option>
+              <option value="customer">عميل</option>
+              <option value="inventory">مخزن</option>
+            </select>
+          </div>
+        }
 
         @if (parentAccount) {
           <div class="parent-info">

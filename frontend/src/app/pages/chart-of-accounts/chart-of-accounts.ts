@@ -7,7 +7,10 @@ interface Account {
   id?: number;
   code: string;
   name: string;
+  sortOrder?: number;
   type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  accountLevel: 'main' | 'sub';
+  subType?: 'general' | 'cash' | 'bank' | 'supplier' | 'customer' | 'inventory';
   parentId?: number;
   children?: Account[];
   expanded?: boolean;
@@ -26,7 +29,13 @@ export class ChartOfAccountsComponent implements OnInit {
   
   showDialog = false;
   dialogMode: 'add' | 'edit' = 'add';
-  currentAccount: Account = { code: '', name: '', type: 'asset' };
+  currentAccount: Account = { 
+    code: '', 
+    name: '', 
+    sortOrder: 1,
+    type: 'asset',
+    accountLevel: 'main'
+  };
   parentAccount: Account | null = null;
 
   private apiUrl = '/api/accounts';
@@ -93,7 +102,13 @@ export class ChartOfAccountsComponent implements OnInit {
 
   openAddDialog() {
     this.dialogMode = 'add';
-    this.currentAccount = { code: '', name: '', type: 'asset' };
+    this.currentAccount = { 
+      code: '', 
+      name: '', 
+      sortOrder: 1,
+      type: 'asset',
+      accountLevel: 'main'
+    };
     this.parentAccount = null;
     this.showDialog = true;
   }
@@ -101,7 +116,15 @@ export class ChartOfAccountsComponent implements OnInit {
   openAddSubDialog(parent: Account, event: Event) {
     event.stopPropagation();
     this.dialogMode = 'add';
-    this.currentAccount = { code: '', name: '', type: parent.type, parentId: parent.id };
+    this.currentAccount = { 
+      code: '', 
+      name: '', 
+      sortOrder: 1,
+      type: parent.type, 
+      accountLevel: 'sub',
+      subType: 'general',
+      parentId: parent.id 
+    };
     this.parentAccount = parent;
     this.showDialog = true;
   }
@@ -121,6 +144,15 @@ export class ChartOfAccountsComponent implements OnInit {
         next: () => this.loadAccounts(),
         error: (err) => console.error('Error deleting account:', err)
       });
+    }
+  }
+
+  onAccountLevelChange() {
+    if (this.currentAccount.accountLevel === 'main') {
+      delete this.currentAccount.subType;
+      delete this.currentAccount.parentId;
+    } else {
+      this.currentAccount.subType = 'general';
     }
   }
 
@@ -151,7 +183,13 @@ export class ChartOfAccountsComponent implements OnInit {
 
   closeDialog() {
     this.showDialog = false;
-    this.currentAccount = { code: '', name: '', type: 'asset' };
+    this.currentAccount = { 
+      code: '', 
+      name: '', 
+      sortOrder: 1,
+      type: 'asset',
+      accountLevel: 'main'
+    };
     this.parentAccount = null;
   }
 
@@ -164,5 +202,18 @@ export class ChartOfAccountsComponent implements OnInit {
       expense: 'مصروفات'
     };
     return labels[type] || type;
+  }
+
+  getSubTypeLabel(subType?: string): string {
+    if (!subType) return '';
+    const labels: Record<string, string> = {
+      general: 'عام',
+      cash: 'صندوق',
+      bank: 'بنك',
+      supplier: 'مورد',
+      customer: 'عميل',
+      inventory: 'مخزن'
+    };
+    return labels[subType] || subType;
   }
 }

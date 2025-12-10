@@ -363,3 +363,18 @@
 .btn-secondary:hover {
   background: #e2e8f0;
 }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.account-subtype {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #f0f9ff;
+  color: #0369a1;
+}

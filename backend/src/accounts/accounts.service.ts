@@ -4,7 +4,10 @@ export interface Account {
   id: number;
   code: string;
   name: string;
+  sortOrder?: number;
   type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  accountLevel: 'main' | 'sub';
+  subType?: 'general' | 'cash' | 'bank' | 'supplier' | 'customer' | 'inventory';
   parentId?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -17,7 +20,9 @@ export class AccountsService {
       id: 1,
       code: '1000',
       name: 'الأصول',
+      sortOrder: 1,
       type: 'asset',
+      accountLevel: 'main',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -25,7 +30,10 @@ export class AccountsService {
       id: 2,
       code: '1100',
       name: 'الأصول المتداولة',
+      sortOrder: 1,
       type: 'asset',
+      accountLevel: 'sub',
+      subType: 'general',
       parentId: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -33,49 +41,72 @@ export class AccountsService {
     {
       id: 3,
       code: '1110',
-      name: 'النقدية',
+      name: 'صندوق الرئيسي',
+      sortOrder: 1,
       type: 'asset',
+      accountLevel: 'sub',
+      subType: 'cash',
       parentId: 2,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: 4,
-      code: '2000',
-      name: 'الخصوم',
-      type: 'liability',
+      code: '1120',
+      name: 'البنك الأهلي',
+      sortOrder: 2,
+      type: 'asset',
+      accountLevel: 'sub',
+      subType: 'bank',
+      parentId: 2,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: 5,
-      code: '3000',
-      name: 'حقوق الملكية',
-      type: 'equity',
+      code: '2000',
+      name: 'الخصوم',
+      sortOrder: 2,
+      type: 'liability',
+      accountLevel: 'main',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: 6,
-      code: '4000',
-      name: 'الإيرادات',
-      type: 'revenue',
+      code: '3000',
+      name: 'حقوق الملكية',
+      sortOrder: 3,
+      type: 'equity',
+      accountLevel: 'main',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: 7,
+      code: '4000',
+      name: 'الإيرادات',
+      sortOrder: 4,
+      type: 'revenue',
+      accountLevel: 'main',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 8,
       code: '5000',
       name: 'المصروفات',
+      sortOrder: 5,
       type: 'expense',
+      accountLevel: 'main',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   ];
-  private nextId = 8;
+  private nextId = 9;
 
   findAll(): Account[] {
-    return this.accounts;
+    return this.accounts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }
 
   findOne(id: number): Account {
@@ -87,7 +118,10 @@ export class AccountsService {
       id: this.nextId++,
       code: accountData.code,
       name: accountData.name,
+      sortOrder: accountData.sortOrder || 1,
       type: accountData.type,
+      accountLevel: accountData.accountLevel || 'main',
+      subType: accountData.subType,
       parentId: accountData.parentId,
       createdAt: new Date(),
       updatedAt: new Date(),
