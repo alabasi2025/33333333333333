@@ -10,10 +10,50 @@
       <span class="label">لوحة التحكم</span>
     </a>
     
-    <a routerLink="/financial" routerLinkActive="active" class="nav-item">
-      <span class="icon">💰</span>
-      <span class="label">النظام المالي</span>
-    </a>
+    <div class="nav-group">
+      <div class="nav-item" (click)="toggleFinancial()">
+        <span class="icon">💰</span>
+        <span class="label">النظام المالي</span>
+        <span class="arrow" [class.open]="isFinancialOpen">▼</span>
+      </div>
+      
+      <div class="submenu" [class.open]="isFinancialOpen">
+        <a routerLink="/financial/settings" routerLinkActive="active" class="submenu-item">
+          <span class="icon">⚙️</span>
+          <span class="label">إعدادات النظام المالي</span>
+        </a>
+        
+        <a routerLink="/financial/chart-of-accounts" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📊</span>
+          <span class="label">الدليل المحاسبي</span>
+        </a>
+        
+        <a routerLink="/financial/cash-boxes" routerLinkActive="active" class="submenu-item">
+          <span class="icon">💼</span>
+          <span class="label">الصناديق</span>
+        </a>
+        
+        <a routerLink="/financial/banks" routerLinkActive="active" class="submenu-item">
+          <span class="icon">🏦</span>
+          <span class="label">البنوك</span>
+        </a>
+        
+        <a routerLink="/financial/payment-voucher" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📄</span>
+          <span class="label">سند صرف</span>
+        </a>
+        
+        <a routerLink="/financial/receipt-voucher" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📃</span>
+          <span class="label">سند قبض</span>
+        </a>
+        
+        <a routerLink="/financial/journal-entry" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📓</span>
+          <span class="label">قيد يومية</span>
+        </a>
+      </div>
+    </div>
     
     <a routerLink="/inventory" routerLinkActive="active" class="nav-item">
       <span class="icon">📦</span>

@@ -100,3 +100,68 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
+
+.nav-group {
+  margin: 0;
+}
+
+.nav-group .nav-item {
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-item .arrow {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+
+.nav-item .arrow.open {
+  transform: rotate(-180deg);
+}
+
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.submenu.open {
+  max-height: 500px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem 0.875rem 3rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-right: 3px solid transparent;
+  font-size: 0.9rem;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-right-color: #60a5fa;
+}
+
+.submenu-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-right-color: #3b82f6;
+  font-weight: 600;
+}
+
+.submenu-item .icon {
+  font-size: 1.25rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.submenu-item .label {
+  flex: 1;
+}
