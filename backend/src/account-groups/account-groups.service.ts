@@ -4,7 +4,6 @@ export interface AccountGroup {
   id: number;
   code: string;
   name: string;
-  type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   description?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -16,23 +15,29 @@ export class AccountGroupsService {
     {
       id: 1,
       code: 'G1',
-      name: 'مجموعة الأصول',
-      type: 'asset',
-      description: 'مجموعة حسابات الأصول',
+      name: 'العمليات النقدية',
+      description: 'الصناديق والبنوك',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       id: 2,
       code: 'G2',
-      name: 'مجموعة الخصوم',
-      type: 'liability',
-      description: 'مجموعة حسابات الخصوم',
+      name: 'الموردين الرئيسيين',
+      description: 'الموردين الأساسيين للشركة',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 3,
+      code: 'G3',
+      name: 'العملاء المميزين',
+      description: 'العملاء ذوي الأولوية',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   ];
-  private nextId = 3;
+  private nextId = 4;
 
   findAll(): AccountGroup[] {
     return this.groups;
@@ -47,7 +52,6 @@ export class AccountGroupsService {
       id: this.nextId++,
       code: groupData.code,
       name: groupData.name,
-      type: groupData.type,
       description: groupData.description,
       createdAt: new Date(),
       updatedAt: new Date(),

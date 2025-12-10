@@ -12,9 +12,17 @@ interface Account {
   accountLevel: 'main' | 'sub';
   subType?: 'general' | 'cash' | 'bank' | 'supplier' | 'customer' | 'inventory';
   parentId?: number;
+  groupId?: number;
   children?: Account[];
   expanded?: boolean;
   level?: number;
+}
+
+interface AccountGroup {
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
 }
 
 @Component({
@@ -27,6 +35,7 @@ export class ChartOfAccountsComponent implements OnInit {
   accounts: Account[] = [];
   filteredAccounts: Account[] = [];
   searchTerm: string = '';
+  accountGroups: AccountGroup[] = [];
   
   showDialog = false;
   dialogMode: 'add' | 'edit' = 'add';
@@ -40,11 +49,22 @@ export class ChartOfAccountsComponent implements OnInit {
   parentAccount: Account | null = null;
 
   private apiUrl = '/api/accounts';
+  private groupsApiUrl = '/api/account-groups';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadAccounts();
+    this.loadAccountGroups();
+  }
+
+  loadAccountGroups() {
+    this.http.get<AccountGroup[]>(this.groupsApiUrl).subscribe({
+      next: (data) => {
+        this.accountGroups = data;
+      },
+      error: (err) => console.error('Error loading account groups:', err)
+    });
   }
 
   loadAccounts() {

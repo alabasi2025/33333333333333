@@ -169,6 +169,16 @@
               <option value="inventory">مخزن</option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label>مجموعة الحسابات (اختياري)</label>
+            <select [(ngModel)]="currentAccount.groupId">
+              <option [value]="undefined">-- بدون مجموعة --</option>
+              @for (group of accountGroups; track group.id) {
+                <option [value]="group.id">{{ group.code }} - {{ group.name }}</option>
+              }
+            </select>
+          </div>
         }
 
         @if (parentAccount) {

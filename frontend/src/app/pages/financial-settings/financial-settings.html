@@ -37,9 +37,9 @@
                     <div class="group-info">
                       <span class="group-code">{{ group.code }}</span>
                       <span class="group-name">{{ group.name }}</span>
-                      <span class="group-type" [class]="'type-' + group.type">
-                        {{ getTypeLabel(group.type) }}
-                      </span>
+                      @if (group.description) {
+                        <span class="group-desc">{{ group.description }}</span>
+                      }
                     </div>
                     <div class="group-actions">
                       <button class="btn-icon" (click)="editGroup(group)" title="تعديل">
@@ -102,19 +102,8 @@
           <input 
             type="text" 
             [(ngModel)]="currentGroup.name" 
-            placeholder="مثال: مجموعة الأصول"
+            placeholder="مثال: العمليات النقدية"
           />
-        </div>
-
-        <div class="form-group">
-          <label>نوع المجموعة *</label>
-          <select [(ngModel)]="currentGroup.type">
-            <option value="asset">أصول</option>
-            <option value="liability">خصوم</option>
-            <option value="equity">حقوق ملكية</option>
-            <option value="revenue">إيرادات</option>
-            <option value="expense">مصروفات</option>
-          </select>
         </div>
 
         <div class="form-group">

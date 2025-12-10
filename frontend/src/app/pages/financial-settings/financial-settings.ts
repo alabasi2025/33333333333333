@@ -7,7 +7,6 @@ interface AccountGroup {
   id?: number;
   code: string;
   name: string;
-  type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   description?: string;
 }
 
@@ -26,7 +25,7 @@ export class FinancialSettingsComponent implements OnInit {
   accountGroups: AccountGroup[] = [];
   showGroupDialog = false;
   groupDialogMode: 'add' | 'edit' = 'add';
-  currentGroup: AccountGroup = { code: '', name: '', type: 'asset' };
+  currentGroup: AccountGroup = { code: '', name: '' };
 
   private apiUrl = '/api/account-groups';
 
@@ -51,7 +50,7 @@ export class FinancialSettingsComponent implements OnInit {
 
   openAddGroupDialog() {
     this.groupDialogMode = 'add';
-    this.currentGroup = { code: '', name: '', type: 'asset' };
+    this.currentGroup = { code: '', name: '' };
     this.showGroupDialog = true;
   }
 
@@ -97,17 +96,8 @@ export class FinancialSettingsComponent implements OnInit {
 
   closeGroupDialog() {
     this.showGroupDialog = false;
-    this.currentGroup = { code: '', name: '', type: 'asset' };
+    this.currentGroup = { code: '', name: '' };
   }
 
-  getTypeLabel(type: string): string {
-    const labels: Record<string, string> = {
-      asset: 'أصول',
-      liability: 'خصوم',
-      equity: 'حقوق ملكية',
-      revenue: 'إيرادات',
-      expense: 'مصروفات'
-    };
-    return labels[type] || type;
-  }
+
 }
