@@ -14,6 +14,10 @@ export class CreateCashBoxDto {
   @IsOptional()
   accountId?: number;
 
+  @IsNumber()
+  @IsOptional()
+  intermediateAccountId?: number;
+
   @IsString()
   @IsOptional()
   description?: string;
