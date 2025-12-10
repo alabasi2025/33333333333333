@@ -17,6 +17,8 @@ import { CashBox } from './cash-boxes/cash-box.entity';
 import { CashTransaction } from './cash-boxes/cash-transaction.entity';
 import { BanksModule } from './banks/banks.module';
 import { Bank } from './banks/bank.entity';
+import { VouchersModule } from './vouchers/vouchers.module';
+import { Voucher } from './vouchers/voucher.entity';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { Bank } from './banks/bank.entity';
       username: 'accounting_user',
       password: 'Acc@2025#Secure',
       database: 'accounting_system',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher],
       synchronize: true, // Auto-create tables (only for development)
       logging: false,
     }),
@@ -39,6 +41,7 @@ import { Bank } from './banks/bank.entity';
     BranchesModule,
     CashBoxesModule,
     BanksModule,
+    VouchersModule,
   ],
 })
 export class AppModule {}
