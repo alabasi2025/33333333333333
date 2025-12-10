@@ -73,7 +73,10 @@ export class JournalEntriesController {
       );
     }
 
-    return await this.journalEntriesService.create(data);
+    return await this.journalEntriesService.create({
+      ...data,
+      date: new Date(data.date),
+    });
   }
 
   @Put(':id')
