@@ -58,25 +58,22 @@ export class AccountsService {
     }
   }
 
-  async findAll(unitId?: number): Promise<Account[]> {
-    // إذا تم تحديد unitId، أرجع حسابات هذه الوحدة فقط
-    // إذا لم يتم تحديد unitId، أرجع الحسابات بدون unit_id (NULL) أو جميع الحسابات
-    let accounts: Account[];
+  async findAll(unitId?: number, subType?: string): Promise<Account[]> {
+    const where: any = {};
     
     if (unitId) {
-      // حسابات الوحدة المحددة
-      accounts = await this.accountRepository.find({
-        where: { unitId },
-        relations: ['children'],
-        order: { order: 'ASC', code: 'ASC' },
-      });
-    } else {
-      // جميع الحسابات (بما فيها التي بدون unit_id)
-      accounts = await this.accountRepository.find({
-        relations: ['children'],
-        order: { order: 'ASC', code: 'ASC' },
-      });
+      where.unitId = unitId;
     }
+    
+    if (subType) {
+      where.subType = subType;
+    }
+    
+    const accounts = await this.accountRepository.find({
+      where,
+      relations: ['children'],
+      order: { order: 'ASC', code: 'ASC' },
+    });
     
     return accounts;
   }

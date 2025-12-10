@@ -17,8 +17,14 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
-  async findAll(@Query('unitId') unitId?: string): Promise<Account[]> {
-    return await this.accountsService.findAll(unitId ? +unitId : undefined);
+  async findAll(
+    @Query('unitId') unitId?: string,
+    @Query('subType') subType?: string
+  ): Promise<Account[]> {
+    return await this.accountsService.findAll(
+      unitId ? +unitId : undefined,
+      subType
+    );
   }
 
   @Get(':id')

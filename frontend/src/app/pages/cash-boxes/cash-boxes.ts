@@ -26,6 +26,7 @@ interface CashBox {
 export class CashBoxesComponent implements OnInit {
   cashBoxes: CashBox[] = [];
   filteredCashBoxes: CashBox[] = [];
+  cashAccounts: any[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   isEditMode: boolean = false;
@@ -47,6 +48,7 @@ export class CashBoxesComponent implements OnInit {
 
   ngOnInit() {
     this.loadCashBoxes();
+    this.loadCashAccounts();
   }
 
   loadCashBoxes() {
@@ -65,6 +67,21 @@ export class CashBoxesComponent implements OnInit {
         },
         error: (err) => {
           console.error('❌ Error loading cash boxes:', err);
+        }
+      });
+  }
+
+  loadCashAccounts() {
+    console.log('💰 Loading cash accounts from API...');
+    this.http.get<any[]>(`${environment.apiUrl}/accounts?subType=cash`)
+      .subscribe({
+        next: (data) => {
+          console.log('✅ Cash accounts received:', data);
+          this.cashAccounts = data;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('❌ Error loading cash accounts:', err);
         }
       });
   }

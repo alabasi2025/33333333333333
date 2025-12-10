@@ -91,6 +91,16 @@
       </div>
       
       <div class="form-group">
+        <label>الحساب المرتبط</label>
+        <select [(ngModel)]="currentCashBox.accountId" class="form-control">
+          <option [value]="null">اختر حساب...</option>
+          <option *ngFor="let account of cashAccounts" [value]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="form-group">
         <label>الرصيد الافتتاحي</label>
         <input type="number" [(ngModel)]="currentCashBox.openingBalance" class="form-control" />
       </div>
