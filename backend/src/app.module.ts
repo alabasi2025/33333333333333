@@ -9,6 +9,9 @@ import { Supplier } from './suppliers/supplier.entity';
 import { Company } from './companies/company.entity';
 import { Unit } from './units/unit.entity';
 import { Branch } from './branches/branch.entity';
+import { CompaniesModule } from './companies/companies.module';
+import { UnitsModule } from './units/units.module';
+import { BranchesModule } from './branches/branches.module';
 
 @Module({
   imports: [
@@ -26,6 +29,9 @@ import { Branch } from './branches/branch.entity';
     SuppliersModule,
     AccountsModule,
     AccountGroupsModule,
+    CompaniesModule,
+    UnitsModule,
+    BranchesModule,
   ],
 })
 export class AppModule {}
