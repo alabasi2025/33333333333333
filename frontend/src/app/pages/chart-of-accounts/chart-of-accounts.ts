@@ -54,39 +54,65 @@ export class ChartOfAccountsComponent implements OnInit {
 
   constructor() {
     console.log('🚀 ChartOfAccountsComponent constructor called');
+    console.log('🔗 API URL:', this.apiUrl);
   }
 
   ngOnInit() {
     console.log('🎯 ngOnInit called - loading data...');
+    console.log('🌐 Window location:', window.location.href);
     this.loadAccounts();
     this.loadAccountGroups();
   }
 
   loadAccountGroups() {
     const url = this.groupsApiUrl;
+    console.log('📦 Loading account groups from:', url);
     this.http.get<AccountGroup[]>(url).subscribe({
       next: (data) => {
+        console.log('✅ Account groups loaded:', data);
         this.accountGroups = data;
       },
-      error: (err) => console.error('Error loading account groups:', err)
+      error: (err) => {
+        console.error('❌ Error loading account groups:', err);
+        alert('خطأ في تحميل مجموعات الحسابات: ' + JSON.stringify(err));
+      }
     });
   }
 
   loadAccounts() {
     const url = this.apiUrl;
     console.log('📊 Loading accounts from:', url);
+    console.log('🔍 Full URL:', window.location.origin + url);
+    
     this.http.get<Account[]>(url).subscribe({
       next: (data) => {
-        console.log('✅ Accounts loaded:', data.length, 'accounts');
-        this.accounts = this.buildTree(data);
-        this.filteredAccounts = [...this.accounts];
-        console.log('🌳 Tree built:', this.accounts);
+        console.log('✅ Raw data received:', data);
+        console.log('📏 Data length:', data.length);
+        console.log('📋 Data type:', typeof data);
+        console.log('🔢 Is Array:', Array.isArray(data));
+        
+        if (data && data.length > 0) {
+          console.log('🎉 Building tree with', data.length, 'accounts');
+          this.accounts = this.buildTree(data);
+          this.filteredAccounts = [...this.accounts];
+          console.log('🌳 Tree built:', this.accounts);
+          console.log('🔎 Filtered accounts:', this.filteredAccounts);
+        } else {
+          console.warn('⚠️ No accounts returned from API');
+          this.accounts = [];
+          this.filteredAccounts = [];
+        }
       },
-      error: (err) => console.error('❌ Error loading accounts:', err)
+      error: (err) => {
+        console.error('❌ Error loading accounts:', err);
+        console.error('❌ Error details:', JSON.stringify(err));
+        alert('خطأ في تحميل الحسابات: ' + JSON.stringify(err));
+      }
     });
   }
 
   buildTree(accounts: Account[]): Account[] {
+    console.log('🏗️ Building tree from accounts:', accounts);
     const map = new Map<number, Account>();
     const roots: Account[] = [];
 
@@ -106,6 +132,7 @@ export class ChartOfAccountsComponent implements OnInit {
       }
     });
 
+    console.log('🌲 Tree roots:', roots);
     return roots;
   }
 
@@ -205,6 +232,10 @@ export class ChartOfAccountsComponent implements OnInit {
   }
 
   saveAccount() {
+    console.log('💾 saveAccount called');
+    console.log('📋 Dialog mode:', this.dialogMode);
+    console.log('📄 Current account:', this.currentAccount);
+    
     if (!this.currentAccount.code || !this.currentAccount.name) {
       alert('يرجى ملء جميع الحقول المطلوبة');
       return;
@@ -219,12 +250,25 @@ export class ChartOfAccountsComponent implements OnInit {
         error: (err) => console.error('Error adding account:', err)
       });
     } else {
-      this.http.put<Account>(`${this.apiUrl}/${this.currentAccount.id}`, this.currentAccount).subscribe({
-        next: () => {
+      console.log('🔄 Updating account ID:', this.currentAccount.id);
+      console.log('📤 PUT URL:', `${this.apiUrl}/${this.currentAccount.id}`);
+      
+      // حذف الحقول غير المطلوبة (children, expanded, level)
+      const { children, expanded, level, ...accountData } = this.currentAccount;
+      console.log('📦 Data to send:', accountData);
+      
+      this.http.put<Account>(`${this.apiUrl}/${this.currentAccount.id}`, accountData).subscribe({
+        next: (response) => {
+          console.log('✅ Update successful!', response);
+          alert('✅ تم تحديث الحساب بنجاح');
           this.loadAccounts();
           this.closeDialog();
         },
-        error: (err) => console.error('Error updating account:', err)
+        error: (err) => {
+          console.error('❌ Error updating account:', err);
+          console.error('❌ Error details:', JSON.stringify(err));
+          alert('❌ خطأ في تحديث الحساب: ' + (err.error?.message || err.message || JSON.stringify(err)));
+        }
       });
     }
   }
