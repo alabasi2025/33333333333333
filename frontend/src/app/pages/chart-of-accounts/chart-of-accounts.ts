@@ -261,12 +261,24 @@ export class ChartOfAccountsComponent implements OnInit {
     }
 
     if (this.dialogMode === 'add') {
-      this.http.post<Account>(this.apiUrl, this.currentAccount).subscribe({
-        next: () => {
+      console.log('➕ Adding new account...');
+      
+      // حذف الحقول غير المطلوبة
+      const { children, expanded, level, ...accountData } = this.currentAccount;
+      console.log('📦 Data to send:', accountData);
+      
+      this.http.post<Account>(this.apiUrl, accountData).subscribe({
+        next: (response) => {
+          console.log('✅ Account added successfully!', response);
+          alert('✅ تمت إضافة الحساب بنجاح');
           this.loadAccounts();
           this.closeDialog();
         },
-        error: (err) => console.error('Error adding account:', err)
+        error: (err) => {
+          console.error('❌ Error adding account:', err);
+          console.error('❌ Error details:', JSON.stringify(err, null, 2));
+          alert('❌ خطأ في إضافة الحساب: ' + (err.error?.message || err.message || JSON.stringify(err)));
+        }
       });
     } else {
       console.log('🔄 Updating account ID:', this.currentAccount.id);
