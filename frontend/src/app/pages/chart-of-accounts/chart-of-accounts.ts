@@ -94,6 +94,14 @@ export class ChartOfAccountsComponent implements OnInit {
         
         if (data && data.length > 0) {
           console.log('🎉 Building tree with', data.length, 'accounts');
+          
+          // تحويل groupIds من strings إلى numbers
+          data = data.map(account => ({
+            ...account,
+            groupIds: account.groupIds ? account.groupIds.map((id: any) => typeof id === 'string' ? parseInt(id) : id) : []
+          }));
+          console.log('✅ groupIds converted to numbers');
+          
           this.accounts = this.buildTree(data);
           this.filteredAccounts = [...this.accounts];
           console.log('🌳 Tree built:', this.accounts);
