@@ -2,8 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CompanyService, Unit } from '../services/company.service';
+import { HttpClient } from '@angular/common/http';
 import { UnitContextService } from '../services/unit-context.service';
+
+interface Unit {
+  id: number;
+  companyId: number;
+  name: string;
+  description?: string;
+  enabledModules: string[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -17,36 +28,23 @@ export class Sidebar implements OnInit {
   selectedUnitId: number = 1;
 
   constructor(
-    private companyService: CompanyService,
+    private http: HttpClient,
     private unitContext: UnitContextService
   ) {}
 
   ngOnInit() {
-    // Load units from API
-    this.companyService.getUnits().subscribe({
+    // Try to load from API first
+    this.http.get<any[]>('http://72.61.111.217/api/units').subscribe({
       next: (data) => {
-        this.units = data;
-        
-        // Check if there's a saved unit
-        const savedUnit = this.unitContext.getSelectedUnit();
-        if (savedUnit) {
-          this.selectedUnitId = savedUnit.id;
-        } else if (data.length > 0) {
-          // Auto-select first unit
-          this.selectedUnitId = data[0].id;
-          this.unitContext.setSelectedUnit(data[0]);
+        if (data && data.length > 0) {
+          this.units = data;
+          this.initializeSelectedUnit();
+        } else {
+          this.useFallbackData();
         }
       },
-      error: (err) => {
-        console.error('Error loading units:', err);
-        // Fallback to hardcoded units if API fails
-        this.units = [
-          { id: 1, name: 'وحدة أعمال الحديدة', companyId: 1, enabledModules: ['financial'], isActive: true, createdAt: new Date(), updatedAt: new Date() },
-          { id: 2, name: 'وحدة أعمال العباسي', companyId: 1, enabledModules: ['financial'], isActive: true, createdAt: new Date(), updatedAt: new Date() },
-          { id: 3, name: 'وحدة محطة أعمال محطة معبر', companyId: 1, enabledModules: ['financial'], isActive: true, createdAt: new Date(), updatedAt: new Date() }
-        ];
-        this.selectedUnitId = this.units[0].id;
-        this.unitContext.setSelectedUnit(this.units[0]);
+      error: () => {
+        this.useFallbackData();
       }
     });
 
@@ -56,6 +54,49 @@ export class Sidebar implements OnInit {
         this.selectedUnitId = unit.id;
       }
     });
+  }
+
+  private useFallbackData() {
+    this.units = [
+      { 
+        id: 1, 
+        name: 'وحدة أعمال الحديدة', 
+        companyId: 1, 
+        enabledModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales'], 
+        isActive: true, 
+        createdAt: new Date(), 
+        updatedAt: new Date() 
+      },
+      { 
+        id: 2, 
+        name: 'وحدة أعمال العباسي', 
+        companyId: 1, 
+        enabledModules: ['financial', 'inventory', 'suppliers', 'purchases', 'sales', 'hr'], 
+        isActive: true, 
+        createdAt: new Date(), 
+        updatedAt: new Date() 
+      },
+      { 
+        id: 3, 
+        name: 'وحدة محطة أعمال محطة معبر', 
+        companyId: 1, 
+        enabledModules: ['financial', 'inventory', 'suppliers', 'purchases'], 
+        isActive: true, 
+        createdAt: new Date(), 
+        updatedAt: new Date() 
+      }
+    ];
+    this.initializeSelectedUnit();
+  }
+
+  private initializeSelectedUnit() {
+    const savedUnit = this.unitContext.getSelectedUnit();
+    if (savedUnit) {
+      this.selectedUnitId = savedUnit.id;
+    } else if (this.units.length > 0) {
+      this.selectedUnitId = this.units[0].id;
+      this.unitContext.setSelectedUnit(this.units[0]);
+    }
   }
 
   onUnitChange() {
