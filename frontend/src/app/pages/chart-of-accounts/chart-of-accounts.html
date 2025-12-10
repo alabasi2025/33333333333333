@@ -1,0 +1,137 @@
+<div class="chart-container">
+  <div class="header">
+    <h1>📊 الدليل المحاسبي</h1>
+    <p class="subtitle">إدارة شجرة الحسابات المحاسبية</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="🔍 البحث في الحسابات..." 
+        [(ngModel)]="searchTerm"
+        (input)="filterAccounts()"
+      />
+    </div>
+    
+    <button class="btn-primary" (click)="openAddDialog()">
+      ➕ إضافة حساب رئيسي
+    </button>
+  </div>
+
+  <div class="accounts-grid">
+    @for (account of filteredAccounts; track account.id) {
+      <div class="account-card" [class.has-children]="account.children && account.children.length > 0">
+        <div class="account-header" (click)="toggleAccount(account)">
+          <div class="account-info">
+            <span class="account-code">{{ account.code }}</span>
+            <span class="account-name">{{ account.name }}</span>
+            <span class="account-type" [class]="'type-' + account.type">{{ getTypeLabel(account.type) }}</span>
+          </div>
+          
+          <div class="account-actions">
+            <button class="btn-icon" (click)="openAddSubDialog(account, $event)" title="إضافة حساب فرعي">
+              ➕
+            </button>
+            <button class="btn-icon" (click)="editAccount(account, $event)" title="تعديل">
+              ✏️
+            </button>
+            <button class="btn-icon btn-danger" (click)="deleteAccount(account, $event)" title="حذف">
+              🗑️
+            </button>
+            @if (account.children && account.children.length > 0) {
+              <span class="toggle-icon" [class.open]="account.expanded">▼</span>
+            }
+          </div>
+        </div>
+
+        @if (account.expanded && account.children && account.children.length > 0) {
+          <div class="sub-accounts">
+            @for (child of account.children; track child.id) {
+              <div class="sub-account">
+                <div class="sub-account-info">
+                  <span class="account-code">{{ child.code }}</span>
+                  <span class="account-name">{{ child.name }}</span>
+                  <span class="account-type" [class]="'type-' + child.type">{{ getTypeLabel(child.type) }}</span>
+                </div>
+                <div class="account-actions">
+                  <button class="btn-icon" (click)="editAccount(child, $event)" title="تعديل">
+                    ✏️
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteAccount(child, $event)" title="حذف">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (filteredAccounts.length === 0) {
+    <div class="empty-state">
+      <p>📋 لا توجد حسابات محاسبية</p>
+      <button class="btn-primary" (click)="openAddDialog()">
+        إضافة أول حساب
+      </button>
+    </div>
+  }
+</div>
+
+@if (showDialog) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>{{ dialogMode === 'add' ? '➕ إضافة حساب' : '✏️ تعديل حساب' }}</h2>
+        <button class="btn-close" (click)="closeDialog()">✖</button>
+      </div>
+      
+      <div class="dialog-body">
+        <div class="form-group">
+          <label>رقم الحساب *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="currentAccount.code" 
+            placeholder="مثال: 1000"
+            [disabled]="dialogMode === 'edit'"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>اسم الحساب *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="currentAccount.name" 
+            placeholder="مثال: الأصول المتداولة"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>نوع الحساب *</label>
+          <select [(ngModel)]="currentAccount.type">
+            <option value="asset">أصول</option>
+            <option value="liability">خصوم</option>
+            <option value="equity">حقوق ملكية</option>
+            <option value="revenue">إيرادات</option>
+            <option value="expense">مصروفات</option>
+          </select>
+        </div>
+
+        @if (parentAccount) {
+          <div class="parent-info">
+            <strong>الحساب الأب:</strong> {{ parentAccount.code }} - {{ parentAccount.name }}
+          </div>
+        }
+      </div>
+
+      <div class="dialog-footer">
+        <button class="btn-secondary" (click)="closeDialog()">إلغاء</button>
+        <button class="btn-primary" (click)="saveAccount()">
+          {{ dialogMode === 'add' ? 'إضافة' : 'حفظ' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
