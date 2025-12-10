@@ -189,7 +189,18 @@ export class ChartOfAccountsComponent implements OnInit {
   editAccount(account: Account, event: Event) {
     event.stopPropagation();
     this.dialogMode = 'edit';
+    console.log('✏️ editAccount called with:', account);
+    console.log('📊 account.groupIds:', account.groupIds);
+    console.log('📊 Type of groupIds:', typeof account.groupIds);
+    
     this.currentAccount = { ...account };
+    
+    // إذا كان groupIds null أو undefined، اجعله مصفوفة فارغة
+    if (!this.currentAccount.groupIds) {
+      this.currentAccount.groupIds = [];
+    }
+    
+    console.log('📋 currentAccount.groupIds after copy:', this.currentAccount.groupIds);
     this.parentAccount = null;
     this.showDialog = true;
   }
@@ -310,10 +321,15 @@ export class ChartOfAccountsComponent implements OnInit {
   }
 
   isGroupSelected(groupId: number): boolean {
-    return this.currentAccount.groupIds?.includes(groupId) || false;
+    const selected = this.currentAccount.groupIds?.includes(groupId) || false;
+    console.log(`🔍 isGroupSelected(${groupId}):`, selected, '| groupIds:', this.currentAccount.groupIds);
+    return selected;
   }
 
   toggleGroup(groupId: number) {
+    console.log(`🔄 toggleGroup(${groupId}) called`);
+    console.log('📊 Before toggle, groupIds:', this.currentAccount.groupIds);
+    
     if (!this.currentAccount.groupIds) {
       this.currentAccount.groupIds = [];
     }
@@ -321,9 +337,13 @@ export class ChartOfAccountsComponent implements OnInit {
     const index = this.currentAccount.groupIds.indexOf(groupId);
     if (index > -1) {
       this.currentAccount.groupIds.splice(index, 1);
+      console.log(`➖ Removed group ${groupId}`);
     } else {
       this.currentAccount.groupIds.push(groupId);
+      console.log(`➕ Added group ${groupId}`);
     }
+    
+    console.log('📊 After toggle, groupIds:', this.currentAccount.groupIds);
   }
 
   getGroupNames(groupIds?: number[]): string {
