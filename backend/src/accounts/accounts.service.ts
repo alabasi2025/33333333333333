@@ -58,8 +58,10 @@ export class AccountsService {
     }
   }
 
-  async findAll(): Promise<Account[]> {
+  async findAll(unitId?: number): Promise<Account[]> {
+    const where = unitId ? { unitId } : {};
     return await this.accountRepository.find({
+      where,
       relations: ['children'],
       order: { order: 'ASC', code: 'ASC' },
     });

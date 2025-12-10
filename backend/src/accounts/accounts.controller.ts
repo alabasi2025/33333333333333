@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
@@ -16,8 +17,8 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
-  async findAll(): Promise<Account[]> {
-    return await this.accountsService.findAll();
+  async findAll(@Query('unitId') unitId?: string): Promise<Account[]> {
+    return await this.accountsService.findAll(unitId ? +unitId : undefined);
   }
 
   @Get(':id')

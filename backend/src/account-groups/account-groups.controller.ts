@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AccountGroupsService } from './account-groups.service';
@@ -16,8 +17,8 @@ export class AccountGroupsController {
   constructor(private readonly accountGroupsService: AccountGroupsService) {}
 
   @Get()
-  async findAll(): Promise<AccountGroup[]> {
-    return await this.accountGroupsService.findAll();
+  async findAll(@Query('unitId') unitId?: string): Promise<AccountGroup[]> {
+    return await this.accountGroupsService.findAll(unitId ? +unitId : undefined);
   }
 
   @Get(':id')
