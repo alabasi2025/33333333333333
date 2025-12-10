@@ -31,13 +31,14 @@ interface StockTransaction {
   transactionNumber?: string;
   transactionType: 'in' | 'out';
   warehouseId: number;
+  warehouse?: { id: number; name: string };
   warehouseName?: string;
   transactionDate: string;
   referenceNumber?: string;
   notes?: string;
   totalAmount?: number;
   isApproved?: boolean;
-  items: TransactionItem[];
+  items: (TransactionItem & { item?: { id: number; name: string } })[];
 }
 
 @Component({

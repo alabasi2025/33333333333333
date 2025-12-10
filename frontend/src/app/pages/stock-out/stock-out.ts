@@ -31,13 +31,14 @@ interface StockTransaction {
   transactionNumber?: string;
   transactionType: 'out' | 'out';
   warehouseId: number;
+  warehouse?: { id: number; name: string };
   warehouseName?: string;
   transactionDate: string;
   referenceNumber?: string;
   notes?: string;
   totalAmount?: number;
   isApproved?: boolean;
-  items: TransactionItem[];
+  items: (TransactionItem & { item?: { id: number; name: string } })[];
 }
 
 @Component({
@@ -76,7 +77,7 @@ export class StockOutComponent implements OnInit {
   }
 
   loadTransactions() {
-    this.http.get<StockTransaction[]>(`${environment.apiUrl}/stock-transactions?type=in`)
+    this.http.get<StockTransaction[]>(`${environment.apiUrl}/stock-transactions?type=out`)
       .subscribe({
         next: (data) => {
           this.transactions = data.map(t => ({
