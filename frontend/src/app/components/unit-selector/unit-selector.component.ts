@@ -30,9 +30,11 @@ export class UnitSelectorComponent implements OnInit {
   }
 
   loadUnits() {
-    console.log('🔄 جاري تحميل الوحدات من API...');
+    const apiUrl = `${environment.apiUrl}/units`;
+    console.log('🔄 جاري تحميل الوحدات من API:', apiUrl);
+    console.log('🌐 environment.apiUrl:', environment.apiUrl);
     
-    this.http.get<any[]>(`${environment.apiUrl}/units`).subscribe({
+    this.http.get<any[]>(apiUrl).subscribe({
       next: (units) => {
         console.log('✅ تم تحميل الوحدات:', units);
         
