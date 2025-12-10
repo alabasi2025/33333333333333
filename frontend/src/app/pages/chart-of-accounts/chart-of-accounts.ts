@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -51,6 +51,7 @@ export class ChartOfAccountsComponent implements OnInit {
   private apiUrl = '/api/accounts';
   private groupsApiUrl = '/api/account-groups';
   private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     console.log('🚀 ChartOfAccountsComponent constructor called');
@@ -97,6 +98,10 @@ export class ChartOfAccountsComponent implements OnInit {
           this.filteredAccounts = [...this.accounts];
           console.log('🌳 Tree built:', this.accounts);
           console.log('🔎 Filtered accounts:', this.filteredAccounts);
+          
+          // إجبار Angular على تحديث الواجهة
+          this.cdr.detectChanges();
+          console.log('✅ Change detection triggered!');
         } else {
           console.warn('⚠️ No accounts returned from API');
           this.accounts = [];
@@ -104,9 +109,12 @@ export class ChartOfAccountsComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('❌ Error loading accounts:', err);
-        console.error('❌ Error details:', JSON.stringify(err));
-        alert('خطأ في تحميل الحسابات: ' + JSON.stringify(err));
+        console.error('❌❌❌ ERROR LOADING ACCOUNTS ❌❌❌');
+        console.error('❌ Error object:', err);
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Full error:', JSON.stringify(err, null, 2));
+        alert('❌ خطأ في تحميل الحسابات: ' + (err.message || JSON.stringify(err)));
       }
     });
   }
