@@ -52,13 +52,19 @@ export class WarehouseGroupsComponent implements OnInit {
   }
 
   loadWarehouseGroups() {
+    console.log('Loading warehouse groups from:', `${environment.apiUrl}/warehouse-groups`);
     this.http.get<WarehouseGroup[]>(`${environment.apiUrl}/warehouse-groups`)
       .subscribe({
         next: (data) => {
+          console.log('Warehouse groups loaded:', data);
           this.warehouseGroups = data;
           this.filteredWarehouseGroups = data;
+          console.log('filteredWarehouseGroups:', this.filteredWarehouseGroups);
         },
-        error: (error) => console.error('خطأ في تحميل مجموعات المخازن:', error)
+        error: (error) => {
+          console.error('خطأ في تحميل مجموعات المخازن:', error);
+          console.error('Error details:', error);
+        }
       });
   }
 
