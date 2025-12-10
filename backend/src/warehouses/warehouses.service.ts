@@ -12,7 +12,7 @@ export class WarehousesService {
 
   async findAll(): Promise<Warehouse[]> {
     return await this.warehouseRepository.find({
-      relations: ['account'],
+      relations: ['account', 'group'],
       order: { code: 'ASC' },
     });
   }
@@ -20,7 +20,7 @@ export class WarehousesService {
   async findOne(id: number): Promise<Warehouse> {
     const warehouse = await this.warehouseRepository.findOne({
       where: { id },
-      relations: ['account'],
+      relations: ['account', 'group'],
     });
     
     if (!warehouse) {

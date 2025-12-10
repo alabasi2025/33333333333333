@@ -1,0 +1,127 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>📁 مجموعات المخازن</h1>
+      <p>إدارة مجموعات المخازن والحسابات المرتبطة</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="filterWarehouseGroups()"
+        placeholder="البحث في مجموعات المخازن..."
+        class="search-input">
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة مجموعة
+    </button>
+  </div>
+
+  <div class="warehouse-groups-grid">
+    <div *ngFor="let group of filteredWarehouseGroups" class="warehouse-group-card">
+      <div class="card-header">
+        <h3>{{ group.name }}</h3>
+        <div class="card-actions">
+          <button class="btn-icon" (click)="openModal(group)" title="تعديل">✏️</button>
+          <button class="btn-icon" (click)="deleteWarehouseGroup(group.id!)" title="حذف">🗑️</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">الكود:</span>
+          <span class="value code-badge">{{ group.code }}</span>
+        </div>
+        <div class="info-row" *ngIf="group.account">
+          <span class="label">الحساب المرتبط:</span>
+          <span class="value">{{ group.account.code }} - {{ group.account.name }}</span>
+        </div>
+        <div class="info-row" *ngIf="group.warehouses && group.warehouses.length > 0">
+          <span class="label">عدد المخازن:</span>
+          <span class="value badge">{{ group.warehouses.length }}</span>
+        </div>
+        <div class="info-row" *ngIf="group.description">
+          <span class="label">الوصف:</span>
+          <span class="value">{{ group.description }}</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-badge" [class.active]="group.isActive">
+          {{ group.isActive ? 'نشط' : 'غير نشط' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="filteredWarehouseGroups.length === 0" class="empty-state">
+    <p>لا توجد مجموعات مخازن</p>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل مجموعة' : 'إضافة مجموعة جديدة' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم المجموعة *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="currentWarehouseGroup.name"
+          placeholder="مثال: مجموعة مخازن الديزل"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>الكود *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="currentWarehouseGroup.code"
+          placeholder="مثال: WG-DIESEL"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>الحساب المرتبط</label>
+        <select 
+          [(ngModel)]="currentWarehouseGroup.accountId"
+          class="form-control">
+          <option [ngValue]="undefined">اختر حساب...</option>
+          <option *ngFor="let account of accounts" [ngValue]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea 
+          [(ngModel)]="currentWarehouseGroup.description"
+          placeholder="وصف المجموعة..."
+          class="form-control"
+          rows="3"></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="currentWarehouseGroup.isActive">
+          نشط
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveWarehouseGroup()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>

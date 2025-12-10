@@ -52,6 +52,11 @@
             <span class="label">الحساب:</span>
             <span class="value">{{ getAccountName(warehouse.accountId) }}</span>
           </div>
+          <div class="info-item" *ngIf="warehouse.group">
+            <span class="icon">📁</span>
+            <span class="label">المجموعة:</span>
+            <span class="value">{{ warehouse.group.name }}</span>
+          </div>
         </div>
         
         <p class="description" *ngIf="warehouse.description">{{ warehouse.description }}</p>
@@ -95,6 +100,16 @@
       <div class="form-group">
         <label>الكود *</label>
         <input type="text" [(ngModel)]="currentWarehouse.code" placeholder="مثال: WH-001" />
+      </div>
+
+      <div class="form-group">
+        <label>المجموعة</label>
+        <select [(ngModel)]="currentWarehouse.groupId">
+          <option [value]="undefined">اختر مجموعة...</option>
+          <option *ngFor="let group of warehouseGroups" [value]="group.id">
+            {{ group.code }} - {{ group.name }}
+          </option>
+        </select>
       </div>
 
       <div class="form-group">

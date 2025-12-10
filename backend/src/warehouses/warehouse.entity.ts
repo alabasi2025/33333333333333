@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Account } from '../accounts/account.entity';
+import { WarehouseGroup } from './warehouse-group.entity';
 
 @Entity('warehouses')
 export class Warehouse {
@@ -18,6 +19,13 @@ export class Warehouse {
   @ManyToOne(() => Account, { nullable: true })
   @JoinColumn({ name: 'account_id' })
   account: Account;
+
+  @Column({ name: 'group_id', nullable: true })
+  groupId: number;
+
+  @ManyToOne(() => WarehouseGroup, group => group.warehouses, { nullable: true })
+  @JoinColumn({ name: 'group_id' })
+  group: WarehouseGroup;
 
   @Column({ type: 'text', nullable: true })
   description: string;

@@ -4,12 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
+interface WarehouseGroup {
+  id: number;
+  name: string;
+  code: string;
+}
+
 interface Warehouse {
   id: number;
   name: string;
   code: string;
   accountId?: number;
   account?: any;
+  groupId?: number;
+  group?: WarehouseGroup;
   description?: string;
   location?: string;
   managerName?: string;
@@ -28,6 +36,7 @@ export class WarehousesComponent implements OnInit {
   warehouses: Warehouse[] = [];
   filteredWarehouses: Warehouse[] = [];
   accounts: any[] = [];
+  warehouseGroups: WarehouseGroup[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   isEditMode: boolean = false;
@@ -47,6 +56,7 @@ export class WarehousesComponent implements OnInit {
   ngOnInit() {
     this.loadWarehouses();
     this.loadAccounts();
+    this.loadWarehouseGroups();
   }
 
   loadWarehouses() {
@@ -69,6 +79,17 @@ export class WarehousesComponent implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Error loading accounts:', err)
+      });
+  }
+
+  loadWarehouseGroups() {
+    this.http.get<WarehouseGroup[]>(`${environment.apiUrl}/warehouse-groups`)
+      .subscribe({
+        next: (data) => {
+          this.warehouseGroups = data.filter(g => g.isActive);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Error loading warehouse groups:', err)
       });
   }
 
