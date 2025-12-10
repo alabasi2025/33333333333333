@@ -30,9 +30,11 @@ export class UnitContextService {
   }
 
   setSelectedUnit(unit: Unit | null): void {
+    console.log('🔄 Setting selected unit:', unit);
     this.selectedUnitSubject.next(unit);
     if (unit) {
       localStorage.setItem('selectedUnit', JSON.stringify(unit));
+      console.log('✅ Unit saved to localStorage');
     } else {
       localStorage.removeItem('selectedUnit');
     }

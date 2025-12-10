@@ -44,9 +44,11 @@ export class Header implements OnInit {
   }
 
   selectUnit(unit: Unit) {
+    console.log('👆 User selected unit:', unit);
     this.selectedUnit = unit;
     this.unitContext.setSelectedUnit(unit);
     this.showUnitDropdown = false;
+    console.log('✅ Unit selection complete');
   }
 
   toggleUnitDropdown() {
