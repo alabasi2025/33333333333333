@@ -30,9 +30,9 @@ import { ReportsModule } from './reports/reports.module';
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'accounting_user',
+      username: 'semop_user',
       password: 'Acc@2025#Secure',
-      database: 'accounting_system',
+      database: 'semop_db',
       entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine],
       synchronize: true, // Auto-create tables (only for development)
       logging: false,
