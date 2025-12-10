@@ -193,7 +193,6 @@ export class VouchersService {
       await this.banksService['bankRepository'].update(voucher.bankId, { currentBalance: bank.currentBalance });
     }
   }
-}
 
   private async createJournalEntry(voucher: Voucher): Promise<void> {
     const amount = parseFloat(voucher.amount);
