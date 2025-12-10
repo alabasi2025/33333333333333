@@ -3,6 +3,7 @@ import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 import { Dashboard } from './dashboard/dashboard';
 import { ChartOfAccountsComponent } from './pages/chart-of-accounts/chart-of-accounts';
 import { FinancialSettingsComponent } from './pages/financial-settings/financial-settings';
+import { SystemConfigComponent } from './system-config/system-config.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -13,4 +14,5 @@ export const routes: Routes = [
   { path: 'financial/chart-of-accounts', component: ChartOfAccountsComponent },
   { path: 'inventory', component: Dashboard },
   { path: 'purchases', component: Dashboard },
+  { path: 'system-config', component: SystemConfigComponent },
 ];
