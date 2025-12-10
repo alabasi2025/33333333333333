@@ -1,84 +1,69 @@
-import { Injectable } from '@nestjs/common';
-
-export interface AccountGroup {
-  id: number;
-  code: string;
-  name: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AccountGroup } from './account-group.entity';
 
 @Injectable()
 export class AccountGroupsService {
-  private groups: AccountGroup[] = [
-    {
-      id: 1,
-      code: 'G1',
-      name: 'العمليات النقدية',
-      description: 'الصناديق والبنوك',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: 2,
-      code: 'G2',
-      name: 'الموردين الرئيسيين',
-      description: 'الموردين الأساسيين للشركة',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: 3,
-      code: 'G3',
-      name: 'العملاء المميزين',
-      description: 'العملاء ذوي الأولوية',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-  private nextId = 4;
-
-  findAll(): AccountGroup[] {
-    return this.groups;
+  constructor(
+    @InjectRepository(AccountGroup)
+    private accountGroupRepository: Repository<AccountGroup>,
+  ) {
+    this.seedInitialData();
   }
 
-  findOne(id: number): AccountGroup {
-    return this.groups.find((group) => group.id === id);
-  }
+  private async seedInitialData() {
+    const count = await this.accountGroupRepository.count();
+    if (count === 0) {
+      const initialGroups = [
+        {
+          code: 'G1',
+          name: 'العمليات النقدية',
+          description: 'مجموعة الصناديق والبنوك',
+        },
+        {
+          code: 'G2',
+          name: 'الموردين الرئيسيين',
+          description: 'مجموعة الموردين الأساسيين',
+        },
+      ];
 
-  create(groupData: Partial<AccountGroup>): AccountGroup {
-    const newGroup: AccountGroup = {
-      id: this.nextId++,
-      code: groupData.code,
-      name: groupData.name,
-      description: groupData.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.groups.push(newGroup);
-    return newGroup;
-  }
-
-  update(id: number, groupData: Partial<AccountGroup>): AccountGroup {
-    const index = this.groups.findIndex((group) => group.id === id);
-    if (index !== -1) {
-      this.groups[index] = {
-        ...this.groups[index],
-        ...groupData,
-        updatedAt: new Date(),
-      };
-      return this.groups[index];
+      await this.accountGroupRepository.save(initialGroups);
     }
-    return null;
   }
 
-  remove(id: number): boolean {
-    const index = this.groups.findIndex((group) => group.id === id);
-    if (index !== -1) {
-      this.groups.splice(index, 1);
-      return true;
+  async findAll(): Promise<AccountGroup[]> {
+    return await this.accountGroupRepository.find({
+      order: { code: 'ASC' },
+    });
+  }
+
+  async findOne(id: number): Promise<AccountGroup> {
+    const group = await this.accountGroupRepository.findOne({
+      where: { id },
+    });
+    
+    if (!group) {
+      throw new NotFoundException(`Account group with ID ${id} not found`);
     }
-    return false;
+    
+    return group;
+  }
+
+  async create(groupData: Partial<AccountGroup>): Promise<AccountGroup> {
+    const group = this.accountGroupRepository.create(groupData);
+    return await this.accountGroupRepository.save(group);
+  }
+
+  async update(id: number, groupData: Partial<AccountGroup>): Promise<AccountGroup> {
+    await this.accountGroupRepository.update(id, groupData);
+    return await this.findOne(id);
+  }
+
+  async remove(id: number): Promise<void> {
+    const result = await this.accountGroupRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Account group with ID ${id} not found`);
+    }
   }
 }
