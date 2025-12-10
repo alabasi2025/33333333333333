@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 
 interface Unit {
   id: number;
@@ -23,53 +21,59 @@ export class UnitSelectorComponent implements OnInit {
   isDropdownOpen = false;
   isLoading = true;
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
   ngOnInit() {
     this.loadUnits();
   }
 
-  loadUnits() {
-    const apiUrl = `${environment.apiUrl}/units`;
+  async loadUnits() {
+    const apiUrl = 'http://72.61.111.217/api/units';
     console.log('🔄 جاري تحميل الوحدات من API:', apiUrl);
-    console.log('🌐 environment.apiUrl:', environment.apiUrl);
     
-    this.http.get<any[]>(apiUrl).subscribe({
-      next: (units) => {
-        console.log('✅ تم تحميل الوحدات:', units);
-        
-        // تحويل البيانات من API إلى الصيغة المطلوبة
-        this.units = units.map(unit => ({
-          id: unit.id,
-          name: unit.name,
-          code: unit.code || `UNIT-${unit.id}`,
-          activeModules: unit.enabledModules || unit.activeModules || []
-        }));
-
-        // تحميل الوحدة المحفوظة أو اختيار الأولى
-        const savedUnitId = localStorage.getItem('selectedUnitId');
-        if (savedUnitId) {
-          const savedUnit = this.units.find(u => u.id === parseInt(savedUnitId));
-          this.selectedUnit = savedUnit || this.units[0];
-        } else {
-          this.selectedUnit = this.units[0];
-        }
-
-        this.isLoading = false;
-        
-        // حفظ الوحدة المختارة
-        if (this.selectedUnit) {
-          this.saveSelectedUnit(this.selectedUnit);
-        }
-      },
-      error: (error) => {
-        console.error('❌ خطأ في تحميل الوحدات:', error);
-        this.isLoading = false;
-        
-        // استخدام بيانات وهمية في حالة الخطأ
-        this.useFallbackData();
+    try {
+      const response = await fetch(apiUrl);
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    });
+      
+      const units = await response.json();
+      console.log('✅ تم تحميل الوحدات:', units);
+      
+      // تحويل البيانات من API إلى الصيغة المطلوبة
+      this.units = units.map((unit: any) => ({
+        id: unit.id,
+        name: unit.name,
+        code: unit.code || `UNIT-${unit.id}`,
+        activeModules: unit.enabledModules || unit.activeModules || []
+      }));
+
+      // تحميل الوحدة المحفوظة أو اختيار الأولى
+      const savedUnitId = localStorage.getItem('selectedUnitId');
+      if (savedUnitId) {
+        const savedUnit = this.units.find(u => u.id === parseInt(savedUnitId));
+        this.selectedUnit = savedUnit || this.units[0];
+      } else {
+        this.selectedUnit = this.units[0];
+      }
+
+      this.isLoading = false;
+      
+      // حفظ الوحدة المختارة
+      if (this.selectedUnit) {
+        this.saveSelectedUnit(this.selectedUnit);
+      }
+      
+      console.log('✅ تم اختيار الوحدة:', this.selectedUnit);
+    } catch (error) {
+      console.error('❌ خطأ في تحميل الوحدات:', error);
+      this.isLoading = false;
+      
+      // استخدام بيانات وهمية في حالة الخطأ
+      this.useFallbackData();
+    }
   }
 
   useFallbackData() {
