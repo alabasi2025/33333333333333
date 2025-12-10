@@ -17,11 +17,9 @@ export class CashBoxesService {
   ) {}
 
   // Cash Boxes
-  async findAll(unitId?: number): Promise<CashBox[]> {
-    const where = unitId ? { unitId } : {};
+  async findAll(): Promise<CashBox[]> {
     return this.cashBoxRepository.find({ 
-      where,
-      relations: ['unit', 'account'],
+      relations: ['account'],
       order: { id: 'DESC' }
     });
   }
@@ -29,7 +27,7 @@ export class CashBoxesService {
   async findOne(id: number): Promise<CashBox> {
     const cashBox = await this.cashBoxRepository.findOne({
       where: { id },
-      relations: ['unit', 'account', 'transactions']
+      relations: ['account', 'transactions']
     });
     if (!cashBox) {
       throw new NotFoundException(`Cash box with ID ${id} not found`);
@@ -58,17 +56,13 @@ export class CashBoxesService {
   }
 
   // Transactions
-  async findTransactions(cashBoxId?: number, unitId?: number): Promise<CashTransaction[]> {
+  async findTransactions(cashBoxId?: number): Promise<CashTransaction[]> {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.cashBox', 'cashBox');
 
     if (cashBoxId) {
       queryBuilder.andWhere('transaction.cashBoxId = :cashBoxId', { cashBoxId });
-    }
-
-    if (unitId) {
-      queryBuilder.andWhere('cashBox.unitId = :unitId', { unitId });
     }
 
     return queryBuilder

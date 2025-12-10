@@ -9,8 +9,8 @@ export class CashBoxesController {
   constructor(private readonly cashBoxesService: CashBoxesService) {}
 
   @Get()
-  findAll(@Query('unitId') unitId?: string) {
-    return this.cashBoxesService.findAll(unitId ? +unitId : undefined);
+  findAll() {
+    return this.cashBoxesService.findAll();
   }
 
   @Get(':id')
@@ -40,12 +40,10 @@ export class CashBoxesController {
 
   @Get('transactions/all')
   findTransactions(
-    @Query('cashBoxId') cashBoxId?: string,
-    @Query('unitId') unitId?: string
+    @Query('cashBoxId') cashBoxId?: string
   ) {
     return this.cashBoxesService.findTransactions(
-      cashBoxId ? +cashBoxId : undefined,
-      unitId ? +unitId : undefined
+      cashBoxId ? +cashBoxId : undefined
     );
   }
 

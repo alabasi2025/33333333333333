@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Unit } from '../units/unit.entity';
 import { Account } from '../accounts/account.entity';
 import { CashTransaction } from './cash-transaction.entity';
 
@@ -7,9 +6,6 @@ import { CashTransaction } from './cash-transaction.entity';
 export class CashBox {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ name: 'unit_id' })
-  unitId: number;
 
   @Column()
   name: string;
@@ -39,10 +35,6 @@ export class CashBox {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Unit)
-  @JoinColumn({ name: 'unit_id' })
-  unit: Unit;
-
   @ManyToOne(() => Account, { nullable: true })
   @JoinColumn({ name: 'account_id' })
   account: Account;

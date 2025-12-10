@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +6,6 @@ import { environment } from '../../../environments/environment';
 
 interface CashBox {
   id: number;
-  unitId: number;
   name: string;
   code: string;
   accountId?: number;
@@ -36,24 +35,37 @@ export class CashBoxesComponent implements OnInit {
     code: '',
     description: '',
     openingBalance: 0,
-    isActive: true,
-    unitId: 1
+    isActive: true
   };
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
+
+  constructor() {
+    console.log('🚀 CashBoxesComponent constructor called');
+  }
 
   ngOnInit() {
     this.loadCashBoxes();
   }
 
   loadCashBoxes() {
+    console.log('📦 Loading cash boxes from API...');
     this.http.get<CashBox[]>(`${environment.apiUrl}/cash-boxes`)
       .subscribe({
         next: (data) => {
+          console.log('✅ Cash boxes received:', data);
+          console.log('📏 Data length:', data.length);
           this.cashBoxes = data;
           this.filteredCashBoxes = data;
+          
+          // إجبار Angular على تحديث الواجهة
+          this.cdr.detectChanges();
+          console.log('✅ Change detection triggered!');
         },
-        error: (err) => console.error('Error loading cash boxes:', err)
+        error: (err) => {
+          console.error('❌ Error loading cash boxes:', err);
+        }
       });
   }
 
@@ -83,8 +95,7 @@ export class CashBoxesComponent implements OnInit {
         code: '',
         description: '',
         openingBalance: 0,
-        isActive: true,
-        unitId: 1
+        isActive: true
       };
     }
   }
@@ -96,8 +107,7 @@ export class CashBoxesComponent implements OnInit {
       code: '',
       description: '',
       openingBalance: 0,
-      isActive: true,
-      unitId: 1
+      isActive: true
     };
   }
 
