@@ -7,6 +7,8 @@ import { StockBalance } from './stock-balance.entity';
 import { WarehouseGroup } from './warehouse-group.entity';
 import { StockTransaction } from './stock-transaction.entity';
 import { StockTransactionItem } from './stock-transaction-item.entity';
+import { JournalEntry } from '../journal-entries/journal-entry.entity';
+import { JournalEntryLine } from '../journal-entries/journal-entry-line.entity';
 import { WarehouseGroupsController } from './warehouse-groups.controller';
 import { WarehouseGroupsService } from './warehouse-groups.service';
 import { StockTransactionsController } from './stock-transactions.controller';
@@ -20,7 +22,7 @@ import { StockMovementsService } from './stock-movements.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem]),
+    TypeOrmModule.forFeature([Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, JournalEntry, JournalEntryLine]),
   ],
   controllers: [WarehousesController, ItemsController, StockMovementsController, WarehouseGroupsController, StockTransactionsController],
   providers: [WarehousesService, ItemsService, StockMovementsService, WarehouseGroupsService, StockTransactionsService],

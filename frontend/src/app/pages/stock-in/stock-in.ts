@@ -38,6 +38,7 @@ interface StockTransaction {
   notes?: string;
   totalAmount?: number;
   isApproved?: boolean;
+  journalEntryId?: number;
   items: (TransactionItem & { item?: { id: number; name: string } })[];
 }
 

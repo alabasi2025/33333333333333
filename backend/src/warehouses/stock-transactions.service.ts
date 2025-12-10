@@ -5,6 +5,9 @@ import { StockTransaction } from './stock-transaction.entity';
 import { StockTransactionItem } from './stock-transaction-item.entity';
 import { StockBalance } from './stock-balance.entity';
 import { CreateStockTransactionDto } from './dto/create-stock-transaction.dto';
+import { JournalEntry } from '../journal-entries/journal-entry.entity';
+import { JournalEntryLine } from '../journal-entries/journal-entry-line.entity';
+import { WarehouseGroup } from './warehouse-group.entity';
 
 @Injectable()
 export class StockTransactionsService {
@@ -15,6 +18,12 @@ export class StockTransactionsService {
     private stockTransactionItemRepository: Repository<StockTransactionItem>,
     @InjectRepository(StockBalance)
     private stockBalanceRepository: Repository<StockBalance>,
+    @InjectRepository(JournalEntry)
+    private journalEntryRepository: Repository<JournalEntry>,
+    @InjectRepository(JournalEntryLine)
+    private journalEntryLineRepository: Repository<JournalEntryLine>,
+    @InjectRepository(WarehouseGroup)
+    private warehouseGroupRepository: Repository<WarehouseGroup>,
   ) {}
 
   async findAll(type?: 'in' | 'out'): Promise<StockTransaction[]> {
@@ -88,6 +97,9 @@ export class StockTransactionsService {
     // تحديث أرصدة المخزون
     await this.updateStockBalances(savedTransaction.id, createDto.transactionType);
 
+    // إنشاء القيد المحاسبي
+    await this.createJournalEntry(savedTransaction.id);
+
     return this.findOne(savedTransaction.id);
   }
 
@@ -103,6 +115,11 @@ export class StockTransactionsService {
 
   async delete(id: number): Promise<void> {
     const transaction = await this.findOne(id);
+    
+    // حذف القيد المحاسبي
+    if (transaction.journalEntryId) {
+      await this.deleteJournalEntry(transaction.journalEntryId);
+    }
     
     // حذف تأثير الأمر على الأرصدة
     await this.reverseStockBalances(id, transaction.transactionType);
@@ -161,6 +178,109 @@ export class StockTransactionsService {
         balance.quantity = Number(balance.quantity) + quantityChange;
         await this.stockBalanceRepository.save(balance);
       }
+    }
+  }
+}
+
+  private async createJournalEntry(transactionId: number): Promise<void> {
+    const transaction = await this.stockTransactionRepository.findOne({
+      where: { id: transactionId },
+      relations: ['warehouse', 'warehouse.group', 'items'],
+    });
+
+    if (!transaction || !transaction.warehouse?.groupId) {
+      return; // لا يمكن إنشاء قيد بدون مجموعة مخازن
+    }
+
+    const warehouseGroup = await this.warehouseGroupRepository.findOne({
+      where: { id: transaction.warehouse.groupId },
+      relations: ['account'],
+    });
+
+    if (!warehouseGroup || !warehouseGroup.accountId) {
+      return; // لا يمكن إنشاء قيد بدون حساب مرتبط
+    }
+
+    const inventoryAccountId = warehouseGroup.accountId;
+    const costOfGoodsSoldAccountId = 24; // حساب تكلفة البضاعة المباعة (5100)
+    
+    // توليد رقم القيد
+    const count = await this.journalEntryRepository.count();
+    const entryNumber = `JE-${String(count + 1).padStart(6, '0')}`;
+
+    const description = transaction.transactionType === 'in' 
+      ? `قيد توريد مخزني - ${transaction.transactionNumber}`
+      : `قيد صرف مخزني - ${transaction.transactionNumber}`;
+
+    // إنشاء القيد
+    const journalEntry = this.journalEntryRepository.create({
+      entryNumber,
+      entryDate: transaction.transactionDate,
+      description,
+      referenceNumber: transaction.transactionNumber,
+      totalDebit: Number(transaction.totalAmount),
+      totalCredit: Number(transaction.totalAmount),
+    });
+
+    const savedEntry = await this.journalEntryRepository.save(journalEntry);
+
+    // إنشاء سطور القيد
+    const lines = [];
+
+    if (transaction.transactionType === 'in') {
+      // قيد التوريد: من حـ/ المخزون - إلى حـ/ الموردين/النقدية
+      lines.push(
+        this.journalEntryLineRepository.create({
+          journalEntryId: savedEntry.id,
+          accountId: inventoryAccountId,
+          debit: Number(transaction.totalAmount),
+          credit: 0,
+          description: `توريد بضاعة للمخزن - ${transaction.warehouse.name}`,
+        }),
+        this.journalEntryLineRepository.create({
+          journalEntryId: savedEntry.id,
+          accountId: inventoryAccountId, // مؤقتاً - يجب ربطه بحساب المورد
+          debit: 0,
+          credit: Number(transaction.totalAmount),
+          description: `قيمة البضاعة الموردة`,
+        })
+      );
+    } else {
+      // قيد الصرف: من حـ/ تكلفة البضاعة المباعة - إلى حـ/ المخزون
+      lines.push(
+        this.journalEntryLineRepository.create({
+          journalEntryId: savedEntry.id,
+          accountId: costOfGoodsSoldAccountId,
+          debit: Number(transaction.totalAmount),
+          credit: 0,
+          description: `تكلفة بضاعة مصروفة من المخزن - ${transaction.warehouse.name}`,
+        }),
+        this.journalEntryLineRepository.create({
+          journalEntryId: savedEntry.id,
+          accountId: inventoryAccountId,
+          debit: 0,
+          credit: Number(transaction.totalAmount),
+          description: `صرف بضاعة من المخزن`,
+        })
+      );
+    }
+
+    await this.journalEntryLineRepository.save(lines);
+
+    // تحديث رقم القيد في الأمر
+    transaction.journalEntryId = savedEntry.id;
+    await this.stockTransactionRepository.save(transaction);
+  }
+
+  private async deleteJournalEntry(journalEntryId: number): Promise<void> {
+    const journalEntry = await this.journalEntryRepository.findOne({
+      where: { id: journalEntryId },
+      relations: ['lines'],
+    });
+
+    if (journalEntry) {
+      await this.journalEntryLineRepository.remove(journalEntry.lines);
+      await this.journalEntryRepository.remove(journalEntry);
     }
   }
 }
