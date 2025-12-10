@@ -8,38 +8,39 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
-import { AccountsService, Account } from './accounts.service';
+import { AccountsService } from './accounts.service';
+import { Account } from './account.entity';
 
 @Controller('accounts')
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
-  findAll(): Account[] {
-    return this.accountsService.findAll();
+  async findAll(): Promise<Account[]> {
+    return await this.accountsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Account {
-    return this.accountsService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Account> {
+    return await this.accountsService.findOne(id);
   }
 
   @Post()
-  create(@Body() accountData: Partial<Account>): Account {
-    return this.accountsService.create(accountData);
+  async create(@Body() accountData: Partial<Account>): Promise<Account> {
+    return await this.accountsService.create(accountData);
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() accountData: Partial<Account>,
-  ): Account {
-    return this.accountsService.update(id, accountData);
+  ): Promise<Account> {
+    return await this.accountsService.update(id, accountData);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): { success: boolean } {
-    const success = this.accountsService.remove(id);
-    return { success };
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
+    await this.accountsService.remove(id);
+    return { success: true };
   }
 }
