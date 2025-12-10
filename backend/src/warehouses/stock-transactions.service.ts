@@ -180,7 +180,6 @@ export class StockTransactionsService {
       }
     }
   }
-}
 
   private async createJournalEntry(transactionId: number): Promise<void> {
     const transaction = await this.stockTransactionRepository.findOne({
