@@ -101,6 +101,17 @@
       </div>
       
       <div class="form-group">
+        <label>الحساب الوسيط (اختياري)</label>
+        <select [(ngModel)]="currentCashBox.intermediateAccountId" class="form-control">
+          <option [value]="null">بدون حساب وسيط</option>
+          <option *ngFor="let account of intermediateAccounts" [value]="account.id">
+            {{ account.code }} - {{ account.name }}
+          </option>
+        </select>
+        <small class="form-hint">إذا تم اختيار حساب وسيط، ستمر جميع عمليات الصندوق عبره</small>
+      </div>
+      
+      <div class="form-group">
         <label>الرصيد الافتتاحي</label>
         <input type="number" [(ngModel)]="currentCashBox.openingBalance" class="form-control" />
       </div>

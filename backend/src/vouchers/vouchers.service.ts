@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Voucher, VoucherType, PaymentMethod } from './voucher.entity';
 import { CashBoxesService } from '../cash-boxes/cash-boxes.service';
 import { BanksService } from '../banks/banks.service';
+import { JournalEntriesService } from '../journal-entries/journal-entries.service';
 
 @Injectable()
 export class VouchersService {
@@ -12,6 +13,7 @@ export class VouchersService {
     private voucherRepository: Repository<Voucher>,
     private cashBoxesService: CashBoxesService,
     private banksService: BanksService,
+    private journalEntriesService: JournalEntriesService,
   ) {}
 
   async findAll(type?: VoucherType): Promise<Voucher[]> {
@@ -92,6 +94,9 @@ export class VouchersService {
     // تحديث رصيد الصندوق أو البنك
     await this.updateBalance(savedVoucher);
 
+    // إنشاء قيد محاسبي
+    await this.createJournalEntry(savedVoucher);
+
     return await this.findOne(savedVoucher.id);
   }
 
@@ -100,12 +105,14 @@ export class VouchersService {
     
     // إلغاء التأثير القديم
     await this.reverseBalance(oldVoucher);
+    await this.journalEntriesService.deleteByReference('voucher', id);
 
     await this.voucherRepository.update(id, voucherData);
     const updatedVoucher = await this.findOne(id);
 
     // تطبيق التأثير الجديد
     await this.updateBalance(updatedVoucher);
+    await this.createJournalEntry(updatedVoucher);
 
     return updatedVoucher;
   }
@@ -115,6 +122,7 @@ export class VouchersService {
     
     // إلغاء التأثير على الرصيد
     await this.reverseBalance(voucher);
+    await this.journalEntriesService.deleteByReference('voucher', id);
 
     const result = await this.voucherRepository.delete(id);
     if (result.affected === 0) {
@@ -183,6 +191,159 @@ export class VouchersService {
       }
       
       await this.banksService['bankRepository'].update(voucher.bankId, { currentBalance: bank.currentBalance });
+    }
+  }
+}
+
+  private async createJournalEntry(voucher: Voucher): Promise<void> {
+    const amount = parseFloat(voucher.amount);
+    const lines: any[] = [];
+
+    if (voucher.paymentMethod === PaymentMethod.CASH && voucher.cashBoxId) {
+      const cashBox = await this.cashBoxesService.findOne(voucher.cashBoxId);
+      
+      // التحقق من وجود حساب وسيط
+      if (cashBox.intermediateAccountId) {
+        // القيد يمر عبر الحساب الوسيط
+        if (voucher.type === VoucherType.PAYMENT) {
+          // سند صرف: من حـ/ الحساب الوسيط إلى حـ/ الصندوق
+          lines.push({
+            accountId: cashBox.intermediateAccountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: cashBox.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        } else {
+          // سند قبض: من حـ/ الصندوق إلى حـ/ الحساب الوسيط
+          lines.push({
+            accountId: cashBox.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: cashBox.intermediateAccountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        }
+      } else {
+        // لا يوجد حساب وسيط - القيد المباشر
+        if (voucher.type === VoucherType.PAYMENT) {
+          // سند صرف: من حـ/ الحساب المحدد إلى حـ/ الصندوق
+          lines.push({
+            accountId: voucher.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: cashBox.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        } else {
+          // سند قبض: من حـ/ الصندوق إلى حـ/ الحساب المحدد
+          lines.push({
+            accountId: cashBox.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: voucher.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        }
+      }
+    } else if (voucher.paymentMethod === PaymentMethod.BANK && voucher.bankId) {
+      const bank = await this.banksService.findOne(voucher.bankId);
+      
+      // التحقق من وجود حساب وسيط
+      if (bank.intermediateAccountId) {
+        // القيد يمر عبر الحساب الوسيط
+        if (voucher.type === VoucherType.PAYMENT) {
+          // سند صرف: من حـ/ الحساب الوسيط إلى حـ/ البنك
+          lines.push({
+            accountId: bank.intermediateAccountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: bank.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        } else {
+          // سند قبض: من حـ/ البنك إلى حـ/ الحساب الوسيط
+          lines.push({
+            accountId: bank.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: bank.intermediateAccountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        }
+      } else {
+        // لا يوجد حساب وسيط - القيد المباشر
+        if (voucher.type === VoucherType.PAYMENT) {
+          // سند صرف: من حـ/ الحساب المحدد إلى حـ/ البنك
+          lines.push({
+            accountId: voucher.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: bank.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        } else {
+          // سند قبض: من حـ/ البنك إلى حـ/ الحساب المحدد
+          lines.push({
+            accountId: bank.accountId,
+            debit: amount,
+            credit: 0,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+          lines.push({
+            accountId: voucher.accountId,
+            debit: 0,
+            credit: amount,
+            description: `${voucher.description} - ${voucher.beneficiary}`,
+          });
+        }
+      }
+    }
+
+    // إنشاء القيد المحاسبي
+    if (lines.length > 0) {
+      await this.journalEntriesService.create({
+        date: voucher.date,
+        description: `${voucher.type === VoucherType.PAYMENT ? 'سند صرف' : 'سند قبض'} - ${voucher.voucherNumber}`,
+        referenceType: 'voucher',
+        referenceId: voucher.id,
+        lines,
+      });
     }
   }
 }

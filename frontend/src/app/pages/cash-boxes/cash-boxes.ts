@@ -9,6 +9,7 @@ interface CashBox {
   name: string;
   code: string;
   accountId?: number;
+  intermediateAccountId?: number;
   description?: string;
   openingBalance: number;
   currentBalance: number;
@@ -27,6 +28,7 @@ export class CashBoxesComponent implements OnInit {
   cashBoxes: CashBox[] = [];
   filteredCashBoxes: CashBox[] = [];
   cashAccounts: any[] = [];
+  intermediateAccounts: any[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   isEditMode: boolean = false;
@@ -49,6 +51,7 @@ export class CashBoxesComponent implements OnInit {
   ngOnInit() {
     this.loadCashBoxes();
     this.loadCashAccounts();
+    this.loadIntermediateAccounts();
   }
 
   loadCashBoxes() {
@@ -82,6 +85,25 @@ export class CashBoxesComponent implements OnInit {
         },
         error: (err) => {
           console.error('❌ Error loading cash accounts:', err);
+        }
+      });
+  }
+
+  loadIntermediateAccounts() {
+    console.log('🔄 Loading intermediate accounts from API...');
+    this.http.get<any[]>(`${environment.apiUrl}/accounts`)
+      .subscribe({
+        next: (data) => {
+          console.log('✅ Accounts received:', data);
+          // Filter accounts under 6000 (الحسابات الوسيطة)
+          this.intermediateAccounts = data.filter((acc: any) => 
+            acc.code && acc.code.startsWith('6') && acc.accountLevel === 'sub'
+          );
+          console.log('✅ Intermediate accounts filtered:', this.intermediateAccounts);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('❌ Error loading intermediate accounts:', err);
         }
       });
   }

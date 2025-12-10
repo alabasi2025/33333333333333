@@ -19,6 +19,9 @@ import { BanksModule } from './banks/banks.module';
 import { Bank } from './banks/bank.entity';
 import { VouchersModule } from './vouchers/vouchers.module';
 import { Voucher } from './vouchers/voucher.entity';
+import { JournalEntriesModule } from './journal-entries/journal-entries.module';
+import { JournalEntry } from './journal-entries/journal-entry.entity';
+import { JournalEntryLine } from './journal-entries/journal-entry-line.entity';
 
 @Module({
   imports: [
@@ -29,7 +32,7 @@ import { Voucher } from './vouchers/voucher.entity';
       username: 'accounting_user',
       password: 'Acc@2025#Secure',
       database: 'accounting_system',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine],
       synchronize: true, // Auto-create tables (only for development)
       logging: false,
     }),
@@ -42,6 +45,7 @@ import { Voucher } from './vouchers/voucher.entity';
     CashBoxesModule,
     BanksModule,
     VouchersModule,
+    JournalEntriesModule,
   ],
 })
 export class AppModule {}

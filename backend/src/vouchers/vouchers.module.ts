@@ -5,12 +5,14 @@ import { VouchersService } from './vouchers.service';
 import { VouchersController } from './vouchers.controller';
 import { CashBoxesModule } from '../cash-boxes/cash-boxes.module';
 import { BanksModule } from '../banks/banks.module';
+import { JournalEntriesModule } from '../journal-entries/journal-entries.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Voucher]),
     CashBoxesModule,
     BanksModule,
+    JournalEntriesModule,
   ],
   controllers: [VouchersController],
   providers: [VouchersService],
