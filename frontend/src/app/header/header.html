@@ -23,7 +23,7 @@
             <div *ngFor="let unit of units" 
                  class="unit-item"
                  [class.active]="selectedUnit?.id === unit.id"
-                 (click)="selectUnit(unit)">
+                 (click)="selectUnit(unit); $event.stopPropagation()">
               <div class="unit-item-info">
                 <span class="unit-item-name">{{ unit.name }}</span>
                 <div class="unit-modules">
