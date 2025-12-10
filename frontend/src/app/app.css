@@ -4,17 +4,26 @@
   direction: rtl;
 }
 
-.main-content {
+.content-area {
   flex: 1;
   margin-right: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
   padding: 2rem;
   background: #f5f5f5;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
 }
 
 @media (max-width: 768px) {
-  .main-content {
+  .content-area {
     margin-right: 0;
+  }
+  
+  .main-content {
     padding: 1rem;
   }
 }

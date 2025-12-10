@@ -1,0 +1,45 @@
+<header class="app-header">
+  <div class="header-content">
+    <div class="header-left">
+      <h1 class="company-name">شركة أعمال العباسي</h1>
+    </div>
+    
+    <div class="header-right">
+      <div class="unit-selector" (click)="toggleUnitDropdown()">
+        <div class="selected-unit">
+          <span class="unit-icon">🏢</span>
+          <div class="unit-info">
+            <span class="unit-label">الوحدة الحالية</span>
+            <span class="unit-name">{{ selectedUnit?.name || 'اختر وحدة' }}</span>
+          </div>
+          <span class="dropdown-arrow" [class.open]="showUnitDropdown">▼</span>
+        </div>
+        
+        <div class="unit-dropdown" *ngIf="showUnitDropdown" (click)="$event.stopPropagation()">
+          <div class="dropdown-header">
+            <span>اختر الوحدة</span>
+          </div>
+          <div class="unit-list">
+            <div *ngFor="let unit of units" 
+                 class="unit-item"
+                 [class.active]="selectedUnit?.id === unit.id"
+                 (click)="selectUnit(unit)">
+              <div class="unit-item-info">
+                <span class="unit-item-name">{{ unit.name }}</span>
+                <div class="unit-modules">
+                  <span *ngFor="let module of unit.enabledModules" class="module-badge">
+                    {{ module }}
+                  </span>
+                </div>
+              </div>
+              <span class="check-icon" *ngIf="selectedUnit?.id === unit.id">✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Backdrop to close dropdown when clicking outside -->
+<div class="dropdown-backdrop" *ngIf="showUnitDropdown" (click)="closeDropdown()"></div>
