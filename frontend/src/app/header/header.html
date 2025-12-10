@@ -5,41 +5,18 @@
     </div>
     
     <div class="header-right">
-      <div class="unit-selector" (click)="toggleUnitDropdown($event)">
-        <div class="selected-unit">
+      <div class="unit-selector-wrapper">
+        <label class="unit-label">
           <span class="unit-icon">🏢</span>
-          <div class="unit-info">
-            <span class="unit-label">الوحدة الحالية</span>
-            <span class="unit-name">{{ selectedUnit?.name || 'اختر وحدة' }}</span>
-          </div>
-          <span class="dropdown-arrow" [class.open]="showUnitDropdown">▼</span>
-        </div>
-        
-        <div class="unit-dropdown" *ngIf="showUnitDropdown" (click)="$event.stopPropagation()">
-          <div class="dropdown-header">
-            <span>اختر الوحدة</span>
-          </div>
-          <div class="unit-list">
-            <div *ngFor="let unit of units" 
-                 class="unit-item"
-                 [class.active]="selectedUnit?.id === unit.id"
-                 (click)="selectUnit(unit); $event.stopPropagation()">
-              <div class="unit-item-info">
-                <span class="unit-item-name">{{ unit.name }}</span>
-                <div class="unit-modules">
-                  <span *ngFor="let module of unit.enabledModules" class="module-badge">
-                    {{ module }}
-                  </span>
-                </div>
-              </div>
-              <span class="check-icon" *ngIf="selectedUnit?.id === unit.id">✓</span>
-            </div>
-          </div>
-        </div>
+          <span class="unit-text">الوحدة الحالية:</span>
+        </label>
+        <select class="unit-select" [(ngModel)]="selectedUnitId" (change)="onUnitChange()">
+          <option [value]="null" disabled>اختر وحدة...</option>
+          <option *ngFor="let unit of units" [value]="unit.id">
+            {{ unit.name }}
+          </option>
+        </select>
       </div>
     </div>
   </div>
 </header>
-
-<!-- Backdrop to close dropdown when clicking outside -->
-<div class="dropdown-backdrop" *ngIf="showUnitDropdown" (click)="closeDropdown()"></div>

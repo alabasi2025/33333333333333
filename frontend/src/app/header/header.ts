@@ -1,19 +1,19 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CompanyService, Unit } from '../services/company.service';
 import { UnitContextService } from '../services/unit-context.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
 export class Header implements OnInit {
   units: Unit[] = [];
-  selectedUnit: Unit | null = null;
-  showUnitDropdown = false;
+  selectedUnitId: number | null = null;
 
   constructor(
     private companyService: CompanyService,
@@ -25,7 +25,7 @@ export class Header implements OnInit {
     // Subscribe to unit changes first
     this.unitContext.selectedUnit$.subscribe(unit => {
       console.log('📡 Unit changed in context:', unit);
-      this.selectedUnit = unit;
+      this.selectedUnitId = unit?.id || null;
       this.cdr.detectChanges();
     });
     
@@ -43,26 +43,19 @@ export class Header implements OnInit {
         const currentUnit = this.unitContext.getSelectedUnit();
         if (!currentUnit && data.length > 0) {
           console.log('🎯 Auto-selecting first unit');
-          this.selectUnit(data[0]);
+          this.unitContext.setSelectedUnit(data[0]);
         }
       },
       error: (err) => console.error('❌ خطأ في تحميل الوحدات:', err)
     });
   }
 
-  selectUnit(unit: Unit) {
-    console.log('👆 User clicked on unit:', unit.name);
-    this.unitContext.setSelectedUnit(unit);
-    this.showUnitDropdown = false;
-  }
-
-  toggleUnitDropdown(event: Event) {
-    event.stopPropagation();
-    this.showUnitDropdown = !this.showUnitDropdown;
-    console.log('🔽 Dropdown toggled:', this.showUnitDropdown);
-  }
-
-  closeDropdown() {
-    this.showUnitDropdown = false;
+  onUnitChange() {
+    console.log('🔄 Unit changed to ID:', this.selectedUnitId);
+    const selectedUnit = this.units.find(u => u.id === Number(this.selectedUnitId));
+    if (selectedUnit) {
+      console.log('✅ Setting unit:', selectedUnit.name);
+      this.unitContext.setSelectedUnit(selectedUnit);
+    }
   }
 }
