@@ -31,6 +31,8 @@ import { StockBalance } from './warehouses/stock-balance.entity';
 import { WarehouseGroup } from './warehouses/warehouse-group.entity';
 import { StockTransaction } from './warehouses/stock-transaction.entity';
 import { StockTransactionItem } from './warehouses/stock-transaction-item.entity';
+import { Supplier as WarehouseSupplier } from './warehouses/supplier.entity';
+import { SupplierGroup } from './warehouses/supplier-group.entity';
 
 @Module({
   imports: [
@@ -41,7 +43,7 @@ import { StockTransactionItem } from './warehouses/stock-transaction-item.entity
       username: 'semop_user',
       password: 'Acc@2025#Secure',
       database: 'semop_db',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup],
       synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),

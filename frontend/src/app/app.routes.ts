@@ -13,6 +13,8 @@ import { ItemsComponent } from './pages/items/items';
 import { WarehouseGroupsComponent } from './pages/warehouse-groups/warehouse-groups';
 import { StockInComponent } from './pages/stock-in/stock-in';
 import { StockOutComponent } from './pages/stock-out/stock-out';
+import { SupplierGroupsComponent } from './pages/supplier-groups/supplier-groups';
+import { SuppliersComponentNew } from './pages/suppliers/suppliers';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -33,4 +35,6 @@ export const routes: Routes = [
   { path: 'inventory/stock-in', component: StockInComponent },
   { path: 'inventory/stock-out', component: StockOutComponent },
   { path: 'purchases', component: Dashboard },
+  { path: 'purchases/supplier-groups', component: SupplierGroupsComponent },
+  { path: 'purchases/suppliers', component: SuppliersComponentNew },
 ];

@@ -35,6 +35,12 @@ export class StockTransaction {
   @Column({ name: 'journal_entry_id', nullable: true })
   journalEntryId: number;
 
+  @Column({ name: 'payment_account_id', nullable: true })
+  paymentAccountId: number;
+
+  @Column({ name: 'supplier_id', nullable: true })
+  supplierId: number;
+
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
 

@@ -1,0 +1,170 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🏢 الموردين</h1>
+      <p class="subtitle">إدارة الموردين والموردين</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="filterSuppliers()"
+        placeholder="البحث في الموردين..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="openModal()">
+      ➕ إضافة مورد
+    </button>
+  </div>
+
+  <div class="warehouses-grid" *ngIf="filteredSuppliers.length > 0">
+    <div class="warehouse-card" *ngFor="let supplier of filteredSuppliers">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>{{ supplier.name }}</h3>
+          <span class="code-badge">{{ supplier.code }}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" (click)="openModal(supplier)" title="تعديل">✏️</button>
+          <button class="btn-icon" (click)="deleteSupplier(supplier.id)" title="حذف">🗑️</button>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item" *ngIf="supplier.contactPerson">
+            <span class="icon">👤</span>
+            <span class="label">جهة الاتصال:</span>
+            <span class="value">{{ supplier.contactPerson }}</span>
+          </div>
+          <div class="info-item" *ngIf="supplier.phone">
+            <span class="icon">📞</span>
+            <span class="label">الهاتف:</span>
+            <span class="value">{{ supplier.phone }}</span>
+          </div>
+          <div class="info-item" *ngIf="supplier.email">
+            <span class="icon">✉️</span>
+            <span class="label">البريد:</span>
+            <span class="value">{{ supplier.email }}</span>
+          </div>
+          <div class="info-item" *ngIf="supplier.address">
+            <span class="icon">📍</span>
+            <span class="label">العنوان:</span>
+            <span class="value">{{ supplier.address }}</span>
+          </div>
+          <div class="info-item" *ngIf="supplier.taxNumber">
+            <span class="icon">🔢</span>
+            <span class="label">الرقم الضريبي:</span>
+            <span class="value">{{ supplier.taxNumber }}</span>
+          </div>
+          <div class="info-item" *ngIf="supplier.group">
+            <span class="icon">📁</span>
+            <span class="label">المجموعة:</span>
+            <span class="value">{{ supplier.group.name }}</span>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="supplier.description">{{ supplier.description }}</p>
+        
+        <div class="card-footer">
+          <span 
+            class="status-badge" 
+            [class.active]="supplier.isActive"
+            [class.inactive]="!supplier.isActive"
+            (click)="toggleStatus(supplier)"
+          >
+            {{ supplier.isActive ? 'نشط' : 'غير نشط' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredSuppliers.length === 0">
+    <div class="empty-icon">🏢</div>
+    <h3>لا توجد موردين</h3>
+    <p>قم بإضافة أول مورد</p>
+    <button class="btn-primary" (click)="openModal()">إضافة مورد</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'تعديل مورد' : 'إضافة مورد جديد' }}</h2>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم المورد *</label>
+        <input type="text" [(ngModel)]="currentSupplier.name" placeholder="مثال: شركة الديزل الوطنية" />
+      </div>
+
+      <div class="form-group">
+        <label>الكود *</label>
+        <input type="text" [(ngModel)]="currentSupplier.code" placeholder="مثال: SUP-001" />
+      </div>
+
+      <div class="form-group">
+        <label>المجموعة</label>
+        <select [(ngModel)]="currentSupplier.groupId">
+          <option [value]="undefined">اختر مجموعة...</option>
+          <option *ngFor="let group of supplierGroups" [value]="group.id">
+            {{ group.code }} - {{ group.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>جهة الاتصال</label>
+        <input type="text" [(ngModel)]="currentSupplier.contactPerson" placeholder="مثال: أحمد محمد" />
+      </div>
+
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <input type="text" [(ngModel)]="currentSupplier.phone" placeholder="مثال: +966 50 123 4567" />
+      </div>
+
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <input type="email" [(ngModel)]="currentSupplier.email" placeholder="مثال: info@supplier.com" />
+      </div>
+
+      <div class="form-group">
+        <label>العنوان</label>
+        <input type="text" [(ngModel)]="currentSupplier.address" placeholder="مثال: الرياض - حي الصناعية" />
+      </div>
+
+      <div class="form-group">
+        <label>الرقم الضريبي</label>
+        <input type="text" [(ngModel)]="currentSupplier.taxNumber" placeholder="مثال: 123456789012345" />
+      </div>
+
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea [(ngModel)]="currentSupplier.description" rows="3" placeholder="وصف المورد..."></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="currentSupplier.isActive" />
+          <span>نشط</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
+      <button class="btn-primary" (click)="saveSupplier()">
+        {{ isEditMode ? 'تحديث' : 'حفظ' }}
+      </button>
+    </div>
+  </div>
+</div>
