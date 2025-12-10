@@ -1,0 +1,54 @@
+<div class="unit-selector">
+  <div class="selector-button" (click)="toggleDropdown()">
+    <div class="selector-content">
+      <div class="selector-icon">🏢</div>
+      <div class="selector-text">
+        <div class="selector-label">الوحدة الحالية</div>
+        <div class="selector-value">{{ selectedUnit.name }}</div>
+      </div>
+      <div class="selector-arrow" [class.open]="isDropdownOpen">▼</div>
+    </div>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="isDropdownOpen">
+    <div class="dropdown-header">
+      <span>اختر الوحدة</span>
+      <button class="close-btn" (click)="toggleDropdown()">✕</button>
+    </div>
+    
+    <div class="units-list">
+      <div 
+        *ngFor="let unit of units" 
+        class="unit-item"
+        [class.selected]="unit.id === selectedUnit.id"
+        (click)="selectUnit(unit)">
+        
+        <div class="unit-info">
+          <div class="unit-name">
+            <span class="unit-icon">🏢</span>
+            {{ unit.name }}
+          </div>
+          <div class="unit-code">{{ unit.code }}</div>
+        </div>
+        
+        <div class="unit-modules">
+          <div class="modules-count">
+            {{ getModuleCount(unit) }} وحدات نشطة
+          </div>
+          <div class="modules-icons">
+            <span 
+              *ngFor="let module of unit.activeModules" 
+              class="module-icon"
+              [title]="getModuleName(module)">
+              {{ getModuleIcon(module) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="check-icon" *ngIf="unit.id === selectedUnit.id">✓</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" *ngIf="isDropdownOpen" (click)="toggleDropdown()"></div>

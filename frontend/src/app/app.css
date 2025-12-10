@@ -11,6 +11,17 @@
   flex-direction: column;
 }
 
+.top-bar {
+  background: white;
+  padding: 16px 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  min-height: 70px;
+}
+
 .main-content {
   flex: 1;
   padding: 2rem;
