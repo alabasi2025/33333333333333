@@ -1,0 +1,138 @@
+<div class="settings-container">
+  <div class="header">
+    <h1>⚙️ إعدادات النظام المالي</h1>
+    <p class="subtitle">إدارة إعدادات وتكوينات النظام المالي</p>
+  </div>
+
+  <div class="settings-sections">
+    <!-- إعدادات الدليل المحاسبي -->
+    <div class="settings-section">
+      <div class="section-header" (click)="toggleSection('chartSettings')">
+        <div class="section-title">
+          <span class="section-icon">📊</span>
+          <h2>إعدادات الدليل المحاسبي</h2>
+        </div>
+        <span class="toggle-icon" [class.open]="expandedSections['chartSettings']">▼</span>
+      </div>
+
+      @if (expandedSections['chartSettings']) {
+        <div class="section-content">
+          <!-- مجموعة الحسابات -->
+          <div class="subsection">
+            <div class="subsection-header">
+              <h3>📁 مجموعة الحسابات</h3>
+              <button class="btn-primary btn-sm" (click)="openAddGroupDialog()">
+                ➕ إضافة مجموعة
+              </button>
+            </div>
+
+            <div class="groups-list">
+              @if (accountGroups.length === 0) {
+                <div class="empty-state-small">
+                  <p>لا توجد مجموعات حسابات</p>
+                </div>
+              } @else {
+                @for (group of accountGroups; track group.id) {
+                  <div class="group-card">
+                    <div class="group-info">
+                      <span class="group-code">{{ group.code }}</span>
+                      <span class="group-name">{{ group.name }}</span>
+                      <span class="group-type" [class]="'type-' + group.type">
+                        {{ getTypeLabel(group.type) }}
+                      </span>
+                    </div>
+                    <div class="group-actions">
+                      <button class="btn-icon" (click)="editGroup(group)" title="تعديل">
+                        ✏️
+                      </button>
+                      <button class="btn-icon btn-danger" (click)="deleteGroup(group)" title="حذف">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- إعدادات أخرى (يمكن إضافتها لاحقاً) -->
+    <div class="settings-section">
+      <div class="section-header" (click)="toggleSection('otherSettings')">
+        <div class="section-title">
+          <span class="section-icon">⚙️</span>
+          <h2>إعدادات عامة</h2>
+        </div>
+        <span class="toggle-icon" [class.open]="expandedSections['otherSettings']">▼</span>
+      </div>
+
+      @if (expandedSections['otherSettings']) {
+        <div class="section-content">
+          <p class="coming-soon">قريباً...</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Dialog لإضافة/تعديل مجموعة -->
+@if (showGroupDialog) {
+  <div class="dialog-overlay" (click)="closeGroupDialog()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>{{ groupDialogMode === 'add' ? '➕ إضافة مجموعة' : '✏️ تعديل مجموعة' }}</h2>
+        <button class="btn-close" (click)="closeGroupDialog()">✖</button>
+      </div>
+      
+      <div class="dialog-body">
+        <div class="form-group">
+          <label>رمز المجموعة *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="currentGroup.code" 
+            placeholder="مثال: G1"
+            [disabled]="groupDialogMode === 'edit'"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>اسم المجموعة *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="currentGroup.name" 
+            placeholder="مثال: مجموعة الأصول"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>نوع المجموعة *</label>
+          <select [(ngModel)]="currentGroup.type">
+            <option value="asset">أصول</option>
+            <option value="liability">خصوم</option>
+            <option value="equity">حقوق ملكية</option>
+            <option value="revenue">إيرادات</option>
+            <option value="expense">مصروفات</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>الوصف</label>
+          <textarea 
+            [(ngModel)]="currentGroup.description" 
+            placeholder="وصف المجموعة (اختياري)"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button class="btn-secondary" (click)="closeGroupDialog()">إلغاء</button>
+        <button class="btn-primary" (click)="saveGroup()">
+          {{ groupDialogMode === 'add' ? 'إضافة' : 'حفظ' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
