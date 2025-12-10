@@ -3,7 +3,7 @@ import { WarehouseGroupsService } from './warehouse-groups.service';
 import { CreateWarehouseGroupDto } from './dto/create-warehouse-group.dto';
 import { UpdateWarehouseGroupDto } from './dto/update-warehouse-group.dto';
 
-@Controller('api/warehouse-groups')
+@Controller('warehouse-groups')
 export class WarehouseGroupsController {
   constructor(private readonly warehouseGroupsService: WarehouseGroupsService) {}
 
