@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { Warehouse } from './warehouse.entity';
 import { StockTransactionItem } from './stock-transaction-item.entity';
 import { Supplier } from './supplier.entity';
-import { Account } from '../financial/account.entity';
+import { Account } from '../accounts/account.entity';
 
 @Entity('stock_transactions')
 export class StockTransaction {
