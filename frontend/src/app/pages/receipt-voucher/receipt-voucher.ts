@@ -4,21 +4,24 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
-interface Voucher {
+interface ReceiptVoucher {
   id: number;
   voucherNumber: string;
-  type: 'payment' | 'receipt';
-  paymentMethod: 'cash' | 'bank';
   date: string;
-  cashBoxId?: number;
-  bankId?: number;
-  accountId: number;
   amount: number;
-  beneficiary: string;
+  accountId: number;
+  payerName?: string;
+  paymentMethod: string;
+  referenceNumber?: string;
   description?: string;
-  cashBox?: any;
-  bank?: any;
+  status: string;
+  posted: boolean;
+  journalEntryId?: number;
+  createdBy?: string;
+  approvedBy?: string;
+  approvedAt?: string;
   account?: any;
+  journalEntry?: any;
 }
 
 @Component({
@@ -28,22 +31,21 @@ interface Voucher {
   styleUrl: './receipt-voucher.css'
 })
 export class ReceiptVoucherComponent implements OnInit {
-  vouchers: Voucher[] = [];
-  filteredVouchers: Voucher[] = [];
-  cashBoxes: any[] = [];
-  banks: any[] = [];
+  vouchers: ReceiptVoucher[] = [];
+  filteredVouchers: ReceiptVoucher[] = [];
   accounts: any[] = [];
   searchTerm: string = '';
   showModal: boolean = false;
   isEditMode: boolean = false;
+  statusFilter: string = 'all';
   
-  currentVoucher: Partial<Voucher> = {
-    type: 'receipt',
-    paymentMethod: 'cash',
+  currentVoucher: Partial<ReceiptVoucher> = {
     date: new Date().toISOString().split('T')[0],
     amount: 0,
-    beneficiary: '',
-    description: ''
+    payerName: '',
+    paymentMethod: 'cash',
+    description: '',
+    voucherNumber: ''
   };
 
   private http = inject(HttpClient);
@@ -55,49 +57,22 @@ export class ReceiptVoucherComponent implements OnInit {
 
   ngOnInit() {
     this.loadVouchers();
-    this.loadCashBoxes();
-    this.loadBanks();
     this.loadAccounts();
+    this.generateVoucherNumber();
   }
 
   loadVouchers() {
-    console.log('📃 Loading receipt vouchers from API...');
-    this.http.get<Voucher[]>(`${environment.apiUrl}/vouchers?type=receipt`)
+    console.log('📄 Loading receipt vouchers from API...');
+    this.http.get<ReceiptVoucher[]>(`${environment.apiUrl}/receipt-vouchers`)
       .subscribe({
         next: (data) => {
           console.log('✅ Vouchers received:', data);
           this.vouchers = data;
-          this.filteredVouchers = data;
+          this.applyFilters();
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('❌ Error loading vouchers:', err);
-        }
-      });
-  }
-
-  loadCashBoxes() {
-    this.http.get<any[]>(`${environment.apiUrl}/cash-boxes`)
-      .subscribe({
-        next: (data) => {
-          this.cashBoxes = data.filter(box => box.isActive);
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('❌ Error loading cash boxes:', err);
-        }
-      });
-  }
-
-  loadBanks() {
-    this.http.get<any[]>(`${environment.apiUrl}/banks`)
-      .subscribe({
-        next: (data) => {
-          this.banks = data.filter(bank => bank.isActive);
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('❌ Error loading banks:', err);
         }
       });
   }
@@ -115,67 +90,58 @@ export class ReceiptVoucherComponent implements OnInit {
       });
   }
 
-  onPaymentMethodChange() {
-    // إعادة تعيين الصندوق/البنك عند تغيير طريقة الدفع
-    this.currentVoucher.cashBoxId = undefined;
-    this.currentVoucher.bankId = undefined;
-    this.currentVoucher.voucherNumber = '';
+  generateVoucherNumber() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    this.currentVoucher.voucherNumber = `RV-${year}${month}-${random}`;
   }
 
-  onSourceChange() {
-    // تحديث رقم السند عند اختيار صندوق/بنك
-    if (this.currentVoucher.paymentMethod === 'cash' && this.currentVoucher.cashBoxId) {
-      this.getNextVoucherNumber('cash', this.currentVoucher.cashBoxId);
-    } else if (this.currentVoucher.paymentMethod === 'bank' && this.currentVoucher.bankId) {
-      this.getNextVoucherNumber('bank', undefined, this.currentVoucher.bankId);
+  applyFilters() {
+    let filtered = [...this.vouchers];
+
+    // فلتر الحالة
+    if (this.statusFilter !== 'all') {
+      filtered = filtered.filter(v => v.status === this.statusFilter);
     }
+
+    // فلتر البحث
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(voucher =>
+        voucher.voucherNumber.toLowerCase().includes(term) ||
+        (voucher.payerName && voucher.payerName.toLowerCase().includes(term)) ||
+        (voucher.description && voucher.description.toLowerCase().includes(term))
+      );
+    }
+
+    this.filteredVouchers = filtered;
   }
 
-  getNextVoucherNumber(paymentMethod: string, cashBoxId?: number, bankId?: number) {
-    let url = `${environment.apiUrl}/vouchers/next-number?paymentMethod=${paymentMethod}`;
-    if (cashBoxId) url += `&cashBoxId=${cashBoxId}`;
-    if (bankId) url += `&bankId=${bankId}`;
-
-    this.http.get<{ voucherNumber: string }>(url)
-      .subscribe({
-        next: (response) => {
-          this.currentVoucher.voucherNumber = response.voucherNumber;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('❌ Error getting next voucher number:', err);
-        }
-      });
+  onStatusFilterChange() {
+    this.applyFilters();
   }
 
   searchVouchers() {
-    if (!this.searchTerm) {
-      this.filteredVouchers = this.vouchers;
-      return;
-    }
-    
-    const term = this.searchTerm.toLowerCase();
-    this.filteredVouchers = this.vouchers.filter(voucher =>
-      voucher.voucherNumber.toLowerCase().includes(term) ||
-      voucher.beneficiary.toLowerCase().includes(term) ||
-      (voucher.description && voucher.description.toLowerCase().includes(term))
-    );
+    this.applyFilters();
   }
 
-  openModal(voucher?: Voucher) {
+  openModal(voucher?: ReceiptVoucher) {
     this.showModal = true;
     if (voucher) {
       this.isEditMode = true;
       this.currentVoucher = { ...voucher };
     } else {
       this.isEditMode = false;
+      this.generateVoucherNumber();
       this.currentVoucher = {
-        type: 'receipt',
-        paymentMethod: 'cash',
         date: new Date().toISOString().split('T')[0],
         amount: 0,
-        beneficiary: '',
-        description: ''
+        payerName: '',
+        paymentMethod: 'cash',
+        description: '',
+        voucherNumber: this.currentVoucher.voucherNumber
       };
     }
   }
@@ -183,12 +149,12 @@ export class ReceiptVoucherComponent implements OnInit {
   closeModal() {
     this.showModal = false;
     this.currentVoucher = {
-      type: 'receipt',
-      paymentMethod: 'cash',
       date: new Date().toISOString().split('T')[0],
       amount: 0,
-      beneficiary: '',
-      description: ''
+      payerName: '',
+      paymentMethod: 'cash',
+      description: '',
+      voucherNumber: ''
     };
   }
 
@@ -197,18 +163,13 @@ export class ReceiptVoucherComponent implements OnInit {
     console.log('📄 Current voucher:', this.currentVoucher);
 
     // التحقق من البيانات المطلوبة
+    if (!this.currentVoucher.voucherNumber) {
+      alert('❌ يجب إدخال رقم السند');
+      return;
+    }
+
     if (!this.currentVoucher.accountId) {
       alert('❌ يجب اختيار الحساب');
-      return;
-    }
-
-    if (this.currentVoucher.paymentMethod === 'cash' && !this.currentVoucher.cashBoxId) {
-      alert('❌ يجب اختيار الصندوق');
-      return;
-    }
-
-    if (this.currentVoucher.paymentMethod === 'bank' && !this.currentVoucher.bankId) {
-      alert('❌ يجب اختيار البنك');
       return;
     }
 
@@ -217,66 +178,137 @@ export class ReceiptVoucherComponent implements OnInit {
       return;
     }
 
-    if (!this.currentVoucher.beneficiary) {
-      alert('❌ يجب إدخال اسم المستفيد');
+    if (!this.currentVoucher.payerName) {
+      alert('❌ يجب إدخال اسم الدافع');
       return;
     }
 
+    const payload = {
+      voucherNumber: this.currentVoucher.voucherNumber,
+      date: this.currentVoucher.date,
+      amount: this.currentVoucher.amount,
+      accountId: this.currentVoucher.accountId,
+      payerName: this.currentVoucher.payerName,
+      paymentMethod: this.currentVoucher.paymentMethod,
+      referenceNumber: this.currentVoucher.referenceNumber,
+      description: this.currentVoucher.description,
+      createdBy: 'Admin' // TODO: استخدام المستخدم الحالي
+    };
+
     if (this.isEditMode) {
       // تحديث سند موجود
-      const url = `${environment.apiUrl}/vouchers/${this.currentVoucher.id}`;
-      this.http.put<Voucher>(url, this.currentVoucher)
+      const url = `${environment.apiUrl}/receipt-vouchers/${this.currentVoucher.id}`;
+      this.http.put<ReceiptVoucher>(url, payload)
         .subscribe({
           next: (response) => {
-            alert('✅ تم تحديث سند الصرف بنجاح');
+            alert('✅ تم تحديث سند القبض بنجاح');
             this.loadVouchers();
             this.closeModal();
           },
           error: (err) => {
             console.error('❌ Error updating voucher:', err);
-            alert(`❌ خطأ في تحديث سند الصرف: ${err.error?.message || 'Internal server error'}`);
+            alert(`❌ خطأ في تحديث سند القبض: ${err.error?.message || 'Internal server error'}`);
           }
         });
     } else {
       // إضافة سند جديد
-      const url = `${environment.apiUrl}/vouchers`;
-      this.http.post<Voucher>(url, this.currentVoucher)
+      const url = `${environment.apiUrl}/receipt-vouchers`;
+      this.http.post<ReceiptVoucher>(url, payload)
         .subscribe({
           next: (response) => {
-            alert('✅ تمت إضافة سند الصرف بنجاح');
+            alert('✅ تمت إضافة سند القبض بنجاح');
             this.loadVouchers();
             this.closeModal();
           },
           error: (err) => {
             console.error('❌ Error adding voucher:', err);
-            alert(`❌ خطأ في إضافة سند الصرف: ${err.error?.message || 'Internal server error'}`);
+            alert(`❌ خطأ في إضافة سند القبض: ${err.error?.message || 'Internal server error'}`);
+          }
+        });
+    }
+  }
+
+  approveVoucher(id: number) {
+    if (confirm('هل أنت متأكد من اعتماد هذا السند؟')) {
+      this.http.post(`${environment.apiUrl}/receipt-vouchers/${id}/approve`, {
+        approvedBy: 'Admin' // TODO: استخدام المستخدم الحالي
+      })
+        .subscribe({
+          next: () => {
+            alert('✅ تم اعتماد سند القبض بنجاح');
+            this.loadVouchers();
+          },
+          error: (err) => {
+            console.error('❌ Error approving voucher:', err);
+            alert(`❌ خطأ في اعتماد سند القبض: ${err.error?.message || 'Internal server error'}`);
+          }
+        });
+    }
+  }
+
+  postVoucher(id: number) {
+    if (confirm('هل أنت متأكد من ترحيل هذا السند؟ لن يمكن التعديل عليه بعد الترحيل.')) {
+      this.http.post(`${environment.apiUrl}/receipt-vouchers/${id}/post`, {})
+        .subscribe({
+          next: () => {
+            alert('✅ تم ترحيل سند القبض بنجاح');
+            this.loadVouchers();
+          },
+          error: (err) => {
+            console.error('❌ Error posting voucher:', err);
+            alert(`❌ خطأ في ترحيل سند القبض: ${err.error?.message || 'Internal server error'}`);
+          }
+        });
+    }
+  }
+
+  cancelVoucher(id: number) {
+    if (confirm('هل أنت متأكد من إلغاء هذا السند؟')) {
+      this.http.post(`${environment.apiUrl}/receipt-vouchers/${id}/cancel`, {})
+        .subscribe({
+          next: () => {
+            alert('✅ تم إلغاء سند القبض بنجاح');
+            this.loadVouchers();
+          },
+          error: (err) => {
+            console.error('❌ Error cancelling voucher:', err);
+            alert(`❌ خطأ في إلغاء سند القبض: ${err.error?.message || 'Internal server error'}`);
           }
         });
     }
   }
 
   deleteVoucher(id: number) {
-    if (confirm('هل أنت متأكد من حذف هذا السند؟ سيتم إلغاء تأثيره على الرصيد.')) {
-      this.http.delete(`${environment.apiUrl}/vouchers/${id}`)
+    if (confirm('هل أنت متأكد من حذف هذا السند؟')) {
+      this.http.delete(`${environment.apiUrl}/receipt-vouchers/${id}`)
         .subscribe({
           next: () => {
-            alert('✅ تم حذف سند الصرف بنجاح');
+            alert('✅ تم حذف سند القبض بنجاح');
             this.loadVouchers();
           },
           error: (err) => {
             console.error('❌ Error deleting voucher:', err);
-            alert(`❌ خطأ في حذف سند الصرف: ${err.error?.message || 'Internal server error'}`);
+            alert(`❌ خطأ في حذف سند القبض: ${err.error?.message || 'Internal server error'}`);
           }
         });
     }
   }
 
-  getSourceName(voucher: Voucher): string {
-    if (voucher.paymentMethod === 'cash' && voucher.cashBox) {
-      return voucher.cashBox.name;
-    } else if (voucher.paymentMethod === 'bank' && voucher.bank) {
-      return voucher.bank.name;
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'draft': return 'badge-secondary';
+      case 'approved': return 'badge-success';
+      case 'cancelled': return 'badge-danger';
+      default: return 'badge-secondary';
     }
-    return '-';
+  }
+
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'draft': return 'مسودة';
+      case 'approved': return 'معتمد';
+      case 'cancelled': return 'ملغى';
+      default: return status;
+    }
   }
 }
