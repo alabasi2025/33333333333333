@@ -108,10 +108,14 @@ export class PaymentVouchersService {
 
     // إنشاء قيد محاسبي
     const journalEntry = this.journalEntryRepository.create({
+      entryNumber: `PV-${voucher.voucherNumber}`,
       date: voucher.date,
       description: `سند صرف رقم ${voucher.voucherNumber} - ${voucher.description || ''}`,
-      reference: voucher.voucherNumber,
-      posted: true
+      referenceType: 'payment_voucher',
+      referenceId: voucher.id,
+      totalDebit: voucher.amount,
+      totalCredit: voucher.amount,
+      isPosted: true
     });
 
     const savedEntry = await this.journalEntryRepository.save(journalEntry);

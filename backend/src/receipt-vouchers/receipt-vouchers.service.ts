@@ -108,10 +108,14 @@ export class ReceiptVouchersService {
 
     // إنشاء قيد محاسبي
     const journalEntry = this.journalEntryRepository.create({
+      entryNumber: `RV-${voucher.voucherNumber}`,
       date: voucher.date,
       description: `سند قبض رقم ${voucher.voucherNumber} - ${voucher.description || ''}`,
-      reference: voucher.voucherNumber,
-      posted: true
+      referenceType: 'receipt_voucher',
+      referenceId: voucher.id,
+      totalDebit: voucher.amount,
+      totalCredit: voucher.amount,
+      isPosted: true
     });
 
     const savedEntry = await this.journalEntryRepository.save(journalEntry);
