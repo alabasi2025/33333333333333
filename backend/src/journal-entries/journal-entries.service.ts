@@ -174,6 +174,42 @@ export class JournalEntriesService {
     await this.journalEntryRepository.delete(id);
   }
 
+  async post(id: number): Promise<JournalEntry> {
+    const entry = await this.findOne(id);
+    
+    if (!entry) {
+      throw new BadRequestException('Journal entry not found');
+    }
+
+    if (entry.isPosted) {
+      throw new BadRequestException('Journal entry is already posted');
+    }
+
+    // ترحيل القيد
+    entry.isPosted = true;
+    await this.journalEntryRepository.save(entry);
+
+    return await this.findOne(id);
+  }
+
+  async unpost(id: number): Promise<JournalEntry> {
+    const entry = await this.findOne(id);
+    
+    if (!entry) {
+      throw new BadRequestException('Journal entry not found');
+    }
+
+    if (!entry.isPosted) {
+      throw new BadRequestException('Journal entry is not posted');
+    }
+
+    // إلغاء ترحيل القيد
+    entry.isPosted = false;
+    await this.journalEntryRepository.save(entry);
+
+    return await this.findOne(id);
+  }
+
   private async getNextEntryNumber(): Promise<string> {
     const lastEntry = await this.journalEntryRepository
       .createQueryBuilder('entry')

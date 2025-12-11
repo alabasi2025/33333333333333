@@ -114,7 +114,21 @@ export class StockTransactionsService {
     transaction.approvedBy = approvedBy;
     transaction.approvedAt = new Date();
 
-    return this.stockTransactionRepository.save(transaction);
+    const savedTransaction = await this.stockTransactionRepository.save(transaction);
+
+    // ترحيل القيد المحاسبي تلقائياً عند الاعتماد
+    if (transaction.journalEntryId) {
+      const journalEntry = await this.journalEntryRepository.findOne({
+        where: { id: transaction.journalEntryId },
+      });
+      
+      if (journalEntry && !journalEntry.isPosted) {
+        journalEntry.isPosted = true;
+        await this.journalEntryRepository.save(journalEntry);
+      }
+    }
+
+    return savedTransaction;
   }
 
   async delete(id: number): Promise<void> {

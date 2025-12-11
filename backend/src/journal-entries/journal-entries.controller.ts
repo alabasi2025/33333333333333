@@ -142,4 +142,14 @@ export class JournalEntriesController {
     await this.journalEntriesService.remove(id);
     return { success: true };
   }
+
+  @Post(':id/post')
+  async post(@Param('id', ParseIntPipe) id: number): Promise<JournalEntry> {
+    return await this.journalEntriesService.post(id);
+  }
+
+  @Post(':id/unpost')
+  async unpost(@Param('id', ParseIntPipe) id: number): Promise<JournalEntry> {
+    return await this.journalEntriesService.unpost(id);
+  }
 }
