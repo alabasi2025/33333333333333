@@ -102,7 +102,7 @@ export class StockInComponent implements OnInit {
   }
 
   loadTransactions() {
-    this.http.get<StockTransaction[]>(`${environment.apiUrl}/stock-transactions?type=in`)
+    this.http.get<StockTransaction[]>(`${environment.apiUrl}/stock-transactions?transactionType=in`)
       .subscribe({
         next: (data) => {
           this.transactions = data.map(t => ({
