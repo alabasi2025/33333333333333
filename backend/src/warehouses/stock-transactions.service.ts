@@ -31,6 +31,8 @@ export class StockTransactionsService {
       .leftJoinAndSelect('transaction.warehouse', 'warehouse')
       .leftJoinAndSelect('transaction.items', 'items')
       .leftJoinAndSelect('items.item', 'item')
+      .leftJoinAndSelect('transaction.supplier', 'supplier')
+      .leftJoinAndSelect('transaction.paymentAccount', 'paymentAccount')
       .orderBy('transaction.transactionDate', 'DESC');
 
     if (type) {
@@ -43,7 +45,7 @@ export class StockTransactionsService {
   async findOne(id: number): Promise<StockTransaction> {
     const transaction = await this.stockTransactionRepository.findOne({
       where: { id },
-      relations: ['warehouse', 'items', 'items.item'],
+      relations: ['warehouse', 'items', 'items.item', 'supplier', 'paymentAccount'],
     });
 
     if (!transaction) {
@@ -76,6 +78,8 @@ export class StockTransactionsService {
       notes: createDto.notes,
       totalAmount,
       createdBy: createDto.createdBy,
+      supplierId: createDto.supplierId,
+      paymentAccountId: createDto.paymentAccountId,
     });
 
     const savedTransaction = await this.stockTransactionRepository.save(transaction);
