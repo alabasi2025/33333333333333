@@ -9,8 +9,9 @@ export class ReportsController {
   async getTrialBalance(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('postingStatus') postingStatus?: 'all' | 'posted' | 'unposted',
   ) {
-    return await this.reportsService.getTrialBalance(startDate, endDate);
+    return await this.reportsService.getTrialBalance(startDate, endDate, postingStatus);
   }
 
   @Get('account-statement/:accountId')

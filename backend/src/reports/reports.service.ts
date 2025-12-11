@@ -31,13 +31,20 @@ export class ReportsService {
     private accountRepository: Repository<Account>,
   ) {}
 
-  async getTrialBalance(startDate?: string, endDate?: string): Promise<TrialBalanceReport> {
+  async getTrialBalance(startDate?: string, endDate?: string, postingStatus?: 'all' | 'posted' | 'unposted'): Promise<TrialBalanceReport> {
     // بناء الاستعلام
     let query = this.journalEntryLineRepository
       .createQueryBuilder('line')
       .leftJoinAndSelect('line.account', 'account')
-      .leftJoinAndSelect('line.journalEntry', 'entry')
-      .where('entry.isPosted = :isPosted', { isPosted: true });
+      .leftJoinAndSelect('line.journalEntry', 'entry');
+
+    // تطبيق فلتر حالة الترحيل
+    if (postingStatus === 'posted') {
+      query = query.where('entry.isPosted = :isPosted', { isPosted: true });
+    } else if (postingStatus === 'unposted') {
+      query = query.where('entry.isPosted = :isPosted', { isPosted: false });
+    }
+    // إذا كان 'all' أو غير محدد، لا نضيف فلتر
 
     // تطبيق فلتر التاريخ
     if (startDate) {
