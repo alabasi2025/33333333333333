@@ -24,7 +24,7 @@
 |--------|---------|
 | **Backend** | NestJS + TypeScript |
 | **Frontend** | Angular + TypeScript |
-| **Database** | MySQL |
+| **Database** | PostgreSQL |
 | **ORM** | TypeORM |
 | **الخادم** | http://72.61.111.217 |
 | **المستودع** | https://github.com/alabasi2025/33333333333333 |
@@ -51,6 +51,112 @@ git checkout backup/before-integration
 
 # العودة للفرع الرئيسي
 git checkout master
+```
+
+---
+
+## 🗄️ قاعدة البيانات (PostgreSQL)
+
+### معلومات الاتصال
+
+| المعلومة | القيمة |
+|---------|--------|
+| **النوع** | PostgreSQL |
+| **Host** | localhost |
+| **Port** | 5432 |
+| **Database** | semop_db |
+| **Username** | semop_user |
+| **Password** | Acc@2025#Secure |
+| **Synchronize** | false (معطل للأمان) |
+| **Logging** | false |
+
+### الجداول الموجودة
+
+1. **accounts** - الدليل المحاسبي
+2. **account_groups** - مجموعات الحسابات
+3. **suppliers** - الموردين
+4. **companies** - الشركات
+5. **units** - الوحدات
+6. **branches** - الفروع
+7. **cash_boxes** - الصناديق
+8. **cash_transactions** - معاملات الصندوق
+9. **banks** - البنوك
+10. **vouchers** - السندات
+11. **journal_entries** - قيود اليومية
+12. **journal_entry_lines** - سطور قيود اليومية
+13. **warehouses** - المخازن
+14. **items** - الأصناف
+15. **stock_movements** - حركات المخزون
+16. **stock_balances** - أرصدة المخزون
+17. **warehouse_groups** - مجموعات المخازن
+18. **stock_transactions** - معاملات المخزون
+19. **stock_transaction_items** - أصناف معاملات المخزون
+20. **supplier_groups** - مجموعات الموردين
+
+### الجداول المطلوب إضافتها
+
+1. **payment_vouchers** - سندات الصرف
+   ```sql
+   CREATE TABLE payment_vouchers (
+     id SERIAL PRIMARY KEY,
+     voucher_number VARCHAR(50) UNIQUE NOT NULL,
+     date DATE NOT NULL,
+     amount DECIMAL(15,2) NOT NULL,
+     account_id INTEGER REFERENCES accounts(id),
+     description TEXT,
+     status VARCHAR(20) DEFAULT 'draft',
+     posted BOOLEAN DEFAULT false,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+
+2. **receipt_vouchers** - سندات القبض
+   ```sql
+   CREATE TABLE receipt_vouchers (
+     id SERIAL PRIMARY KEY,
+     voucher_number VARCHAR(50) UNIQUE NOT NULL,
+     date DATE NOT NULL,
+     amount DECIMAL(15,2) NOT NULL,
+     account_id INTEGER REFERENCES accounts(id),
+     description TEXT,
+     status VARCHAR(20) DEFAULT 'draft',
+     posted BOOLEAN DEFAULT false,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+
+3. **journal_entry_attachments** - مرفقات القيود
+   ```sql
+   CREATE TABLE journal_entry_attachments (
+     id SERIAL PRIMARY KEY,
+     journal_entry_id INTEGER REFERENCES journal_entries(id),
+     file_name VARCHAR(255) NOT NULL,
+     file_path VARCHAR(500) NOT NULL,
+     file_type VARCHAR(50),
+     file_size INTEGER,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+
+### أوامر مفيدة
+
+```bash
+# الاتصال بقاعدة البيانات
+psql -U semop_user -d semop_db -h localhost
+
+# عرض جميع الجداول
+\dt
+
+# عرض بنية جدول
+\d table_name
+
+# نسخ احتياطية
+pg_dump -U semop_user -d semop_db > backup.sql
+
+# استعادة نسخة احتياطية
+psql -U semop_user -d semop_db < backup.sql
 ```
 
 ---
@@ -303,8 +409,20 @@ ssh root@72.61.111.217
 
 ### قاعدة البيانات
 ```bash
-mysql -u root -p
-# Database: your_database_name
+# الاتصال بـ PostgreSQL
+psql -U semop_user -d semop_db -h localhost
+
+# أو من خلال pgAdmin على المنفذ 5432
+```
+
+**معلومات الاتصال**:
+```typescript
+type: 'postgres'
+host: 'localhost'
+port: 5432
+username: 'semop_user'
+password: 'Acc@2025#Secure'
+database: 'semop_db'
 ```
 
 ### النشر
