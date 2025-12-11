@@ -33,6 +33,10 @@ import { StockTransaction } from './warehouses/stock-transaction.entity';
 import { StockTransactionItem } from './warehouses/stock-transaction-item.entity';
 import { Supplier as WarehouseSupplier } from './warehouses/supplier.entity';
 import { SupplierGroup } from './warehouses/supplier-group.entity';
+import { PaymentVouchersModule } from './payment-vouchers/payment-vouchers.module';
+import { ReceiptVouchersModule } from './receipt-vouchers/receipt-vouchers.module';
+import { PaymentVoucher } from './payment-vouchers/payment-voucher.entity';
+import { ReceiptVoucher } from './receipt-vouchers/receipt-voucher.entity';
 
 @Module({
   imports: [
@@ -43,7 +47,7 @@ import { SupplierGroup } from './warehouses/supplier-group.entity';
       username: 'semop_user',
       password: 'Acc@2025#Secure',
       database: 'semop_db',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup, PaymentVoucher, ReceiptVoucher],
       synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),
@@ -59,6 +63,8 @@ import { SupplierGroup } from './warehouses/supplier-group.entity';
     JournalEntriesModule,
     ReportsModule,
     WarehousesModule,
+    PaymentVouchersModule,
+    ReceiptVouchersModule,
   ],
 })
 export class AppModule {}
