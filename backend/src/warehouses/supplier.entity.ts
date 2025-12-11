@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { SupplierGroup } from './supplier-group.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -13,6 +14,10 @@ export class Supplier {
 
   @Column({ name: 'group_id', nullable: true })
   groupId: number;
+
+  @ManyToOne(() => SupplierGroup)
+  @JoinColumn({ name: 'group_id' })
+  group: SupplierGroup;
 
   @Column({ name: 'contact_person', nullable: true })
   contactPerson: string;
