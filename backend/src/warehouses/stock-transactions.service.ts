@@ -188,7 +188,7 @@ export class StockTransactionsService {
   private async createJournalEntry(transactionId: number): Promise<void> {
     const transaction = await this.stockTransactionRepository.findOne({
       where: { id: transactionId },
-      relations: ['warehouse', 'warehouse.group', 'items'],
+      relations: ['warehouse', 'warehouse.group', 'items', 'supplier', 'supplier.group', 'paymentAccount'],
     });
 
     if (!transaction || !transaction.warehouse?.groupId) {
@@ -232,6 +232,24 @@ export class StockTransactionsService {
     const lines = [];
 
     if (transaction.transactionType === 'in') {
+      // تحديد الحساب الدائن (المورد أو الحساب المباشر)
+      let creditAccountId: number;
+      let creditDescription: string;
+
+      if (transaction.supplierId && transaction.supplier?.group?.accountId) {
+        // استخدام حساب مجموعة الموردين
+        creditAccountId = transaction.supplier.group.accountId;
+        creditDescription = `قيمة بضاعة موردة من ${transaction.supplier.name}`;
+      } else if (transaction.paymentAccountId) {
+        // استخدام الحساب المباشر
+        creditAccountId = transaction.paymentAccountId;
+        creditDescription = `قيمة بضاعة مدفوعة من حساب ${transaction.paymentAccount?.name || 'مباشر'}`;
+      } else {
+        // في حالة عدم وجود مورد أو حساب، استخدام حساب افتراضي (حساب الموردين العام)
+        creditAccountId = 25; // حساب الموردين العام (2100)
+        creditDescription = `قيمة البضاعة الموردة`;
+      }
+
       // قيد التوريد: من حـ/ المخزون - إلى حـ/ الموردين/النقدية
       lines.push(
         this.journalEntryLineRepository.create({
@@ -243,10 +261,10 @@ export class StockTransactionsService {
         }),
         this.journalEntryLineRepository.create({
           journalEntryId: savedEntry.id,
-          accountId: inventoryAccountId, // مؤقتاً - يجب ربطه بحساب المورد
+          accountId: creditAccountId,
           debit: 0,
           credit: Number(transaction.totalAmount),
-          description: `قيمة البضاعة الموردة`,
+          description: creditDescription,
         })
       );
     } else {
