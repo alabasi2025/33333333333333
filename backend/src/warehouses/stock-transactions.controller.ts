@@ -7,7 +7,7 @@ export class StockTransactionsController {
   constructor(private readonly stockTransactionsService: StockTransactionsService) {}
 
   @Get()
-  findAll(@Query('type') type?: 'in' | 'out') {
+  findAll(@Query('transactionType') type?: 'in' | 'out') {
     return this.stockTransactionsService.findAll(type);
   }
 

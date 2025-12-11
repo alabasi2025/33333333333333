@@ -12,5 +12,7 @@ export class CreateStockTransactionDto {
   referenceNumber?: string;
   notes?: string;
   createdBy?: string;
+  supplierId?: number;
+  paymentAccountId?: number;
   items: CreateStockTransactionItemDto[];
 }
