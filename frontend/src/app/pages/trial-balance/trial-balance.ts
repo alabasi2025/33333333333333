@@ -33,6 +33,7 @@ export class TrialBalanceComponent implements OnInit {
   error: string | null = null;
   startDate: string = '';
   endDate: string = '';
+  postingStatus: 'all' | 'posted' | 'unposted' = 'all';
   
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
@@ -61,6 +62,9 @@ export class TrialBalanceComponent implements OnInit {
     }
     if (this.endDate) {
       params.push(`endDate=${this.endDate}`);
+    }
+    if (this.postingStatus) {
+      params.push(`postingStatus=${this.postingStatus}`);
     }
     
     if (params.length > 0) {
@@ -118,6 +122,7 @@ export class TrialBalanceComponent implements OnInit {
   resetFilters() {
     this.startDate = '';
     this.endDate = '';
+    this.postingStatus = 'all';
     this.loadReport();
   }
 }

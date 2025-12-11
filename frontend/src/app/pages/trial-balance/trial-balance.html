@@ -21,6 +21,14 @@
           <label>إلى تاريخ</label>
           <input type="date" [(ngModel)]="endDate" class="form-control">
         </div>
+        <div class="filter-group">
+          <label>حالة الترحيل</label>
+          <select [(ngModel)]="postingStatus" class="form-control">
+            <option value="all">الكل (المرحّل وغير المرحّل)</option>
+            <option value="posted">المرحّل فقط</option>
+            <option value="unposted">غير المرحّل فقط</option>
+          </select>
+        </div>
         <div class="filter-actions">
           <button (click)="loadReport()" class="btn btn-primary">
             🔍 عرض التقرير
