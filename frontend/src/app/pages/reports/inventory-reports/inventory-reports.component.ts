@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 interface StockBalanceItem {
@@ -100,7 +101,7 @@ export class InventoryReportsComponent implements OnInit {
 
   async loadWarehouses() {
     try {
-      const response: any = await this.http.get(`${environment.apiUrl}/warehouses`).toPromise();
+      const response: any = await firstValueFrom(this.http.get(`${environment.apiUrl}/warehouses`));
       this.warehouses = response;
     } catch (error) {
       console.error('خطأ في تحميل المخازن:', error);
@@ -109,7 +110,7 @@ export class InventoryReportsComponent implements OnInit {
 
   async loadItems() {
     try {
-      const response: any = await this.http.get(`${environment.apiUrl}/items`).toPromise();
+      const response: any = await firstValueFrom(this.http.get(`${environment.apiUrl}/items`));
       this.items = response;
     } catch (error) {
       console.error('خطأ في تحميل الأصناف:', error);
@@ -143,10 +144,10 @@ export class InventoryReportsComponent implements OnInit {
         params = params.set('minQuantity', this.balanceFilters.minQuantity);
       }
 
-      const response: any = await this.http.get(
+      const response: any = await firstValueFrom(this.http.get(
         `${environment.apiUrl}/reports/inventory/stock-balance`,
         { params }
-      ).toPromise();
+      ));
 
       this.stockBalanceItems = response.items;
       this.stockBalanceSummary = {
@@ -184,10 +185,10 @@ export class InventoryReportsComponent implements OnInit {
         params = params.set('movementType', this.movementFilters.movementType);
       }
 
-      const response: any = await this.http.get(
+      const response: any = await firstValueFrom(this.http.get(
         `${environment.apiUrl}/reports/inventory/stock-movement`,
         { params }
-      ).toPromise();
+      ));
 
       this.stockMovementItems = response.items;
       this.stockMovementSummary = {
@@ -211,10 +212,10 @@ export class InventoryReportsComponent implements OnInit {
       let params = new HttpParams();
       params = params.set('days', this.slowMovingFilters.days.toString());
 
-      const response: any = await this.http.get(
+      const response: any = await firstValueFrom(this.http.get(
         `${environment.apiUrl}/reports/inventory/slow-moving`,
         { params }
-      ).toPromise();
+      ));
 
       this.slowMovingItems = response.items;
       this.slowMovingSummary = {
