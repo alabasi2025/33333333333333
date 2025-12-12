@@ -19,6 +19,7 @@ import { BalanceSheetComponent } from './pages/reports/balance-sheet/balance-she
 import { CashFlowComponent } from './pages/reports/cash-flow/cash-flow';
 import { RecurringTransactionsComponent } from './pages/reports/recurring-transactions/recurring-transactions';
 import { InventoryReportsComponent } from './pages/reports/inventory-reports/inventory-reports.component';
+import { StockTransactionDetailsComponent } from './pages/warehouses/stock-transaction-details/stock-transaction-details.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -42,6 +43,7 @@ export const routes: Routes = [
   { path: 'inventory/items', component: ItemsComponent },
   { path: 'inventory/stock-in', component: StockInComponent },
   { path: 'inventory/stock-out', component: StockOutComponent },
+  { path: 'inventory/stock-transaction/:id', component: StockTransactionDetailsComponent },
   { path: 'purchases', component: Dashboard },
   { path: 'purchases/supplier-groups', component: SupplierGroupsComponent },
   { path: 'purchases/suppliers', component: SuppliersComponentNew },

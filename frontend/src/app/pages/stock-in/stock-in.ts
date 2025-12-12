@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 interface Warehouse {
@@ -91,7 +92,7 @@ export class StockInComponent implements OnInit {
     totalPrice: 0
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
     this.loadTransactions();
@@ -99,6 +100,10 @@ export class StockInComponent implements OnInit {
     this.loadItems();
     this.loadSuppliers();
     this.loadAccounts();
+  }
+
+  viewDetails(id: number) {
+    this.router.navigate(['/inventory/stock-transaction', id]);
   }
 
   loadTransactions() {

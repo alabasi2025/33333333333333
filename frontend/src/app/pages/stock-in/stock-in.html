@@ -27,8 +27,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let transaction of transactions">
-          <td>{{ transaction.transactionNumber }}</td>
+        <tr *ngFor="let transaction of transactions" style="cursor: pointer;" (click)="viewDetails(transaction.id!)">
+          <td><a [routerLink]="['/inventory/stock-transaction', transaction.id]" (click)="$event.stopPropagation()" style="color: #007bff; text-decoration: none;">{{ transaction.transactionNumber }}</a></td>
           <td>{{ transaction.warehouseName }}</td>
           <td>{{ transaction.transactionDate | date:'yyyy-MM-dd' }}</td>
           <td>{{ transaction.referenceNumber || '-' }}</td>
