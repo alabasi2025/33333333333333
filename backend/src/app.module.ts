@@ -42,6 +42,8 @@ import { AuthModule } from './auth/auth.module';
 import { RecurringTransactionsModule } from './recurring-transactions/recurring-transactions.module';
 import { RecurringTransaction } from './recurring-transactions/recurring-transaction.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CostCentersModule } from './cost-centers/cost-centers.module';
+import { CostCenter } from './cost-centers/cost-center.entity';
 
 @Module({
   imports: [
@@ -52,7 +54,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       username: 'semop_user',
       password: 'Acc@2025#Secure',
       database: 'semop_db',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup, PaymentVoucher, ReceiptVoucher, RecurringTransaction],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup, PaymentVoucher, ReceiptVoucher, RecurringTransaction, CostCenter],
       synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),
@@ -72,6 +74,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ReceiptVouchersModule,
     AuthModule,
     RecurringTransactionsModule,
+    CostCentersModule,
     ScheduleModule.forRoot(),
     CacheModule.register({
       isGlobal: true,
