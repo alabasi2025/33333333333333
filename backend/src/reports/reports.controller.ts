@@ -22,4 +22,19 @@ export class ReportsController {
   ) {
     return await this.reportsService.getAccountStatement(accountId, startDate, endDate);
   }
+
+  @Get('income-statement')
+  async getIncomeStatement(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return await this.reportsService.getIncomeStatement(startDate, endDate);
+  }
+
+  @Get('balance-sheet')
+  async getBalanceSheet(
+    @Query('asOfDate') asOfDate: string,
+  ) {
+    return await this.reportsService.getBalanceSheet(asOfDate);
+  }
 }

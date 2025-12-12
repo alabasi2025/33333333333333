@@ -191,4 +191,211 @@ export class ReportsService {
 
     return result;
   }
+
+  async getIncomeStatement(startDate: string, endDate: string) {
+    // إنشاء مفتاح cache فريد
+    const cacheKey = `income_statement_${startDate}_${endDate}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    // الحصول على حسابات الإيرادات (type = 'revenue')
+    const revenueAccounts = await this.accountRepository.find({
+      where: { type: 'revenue' }
+    });
+
+    // الحصول على حسابات المصروفات (type = 'expense')
+    const expenseAccounts = await this.accountRepository.find({
+      where: { type: 'expense' }
+    });
+
+    // حساب أرصدة الإيرادات
+    const revenueItems = [];
+    let totalRevenue = 0;
+
+    for (const account of revenueAccounts) {
+      const balance = await this.getAccountBalance(account.id, startDate, endDate);
+      if (balance.credit > 0 || balance.debit > 0) {
+        const netBalance = balance.credit - balance.debit;
+        revenueItems.push({
+          accountCode: account.code,
+          accountName: account.name,
+          amount: netBalance
+        });
+        totalRevenue += netBalance;
+      }
+    }
+
+    // حساب أرصدة المصروفات
+    const expenseItems = [];
+    let totalExpenses = 0;
+
+    for (const account of expenseAccounts) {
+      const balance = await this.getAccountBalance(account.id, startDate, endDate);
+      if (balance.debit > 0 || balance.credit > 0) {
+        const netBalance = balance.debit - balance.credit;
+        expenseItems.push({
+          accountCode: account.code,
+          accountName: account.name,
+          amount: netBalance
+        });
+        totalExpenses += netBalance;
+      }
+    }
+
+    // حساب صافي الدخل
+    const netIncome = totalRevenue - totalExpenses;
+
+    const result = {
+      period: {
+        startDate,
+        endDate
+      },
+      revenue: {
+        items: revenueItems.sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+        total: totalRevenue
+      },
+      expenses: {
+        items: expenseItems.sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+        total: totalExpenses
+      },
+      netIncome
+    };
+
+    // حفظ النتيجة في الـ cache لمدة 5 دقائق
+    await this.cacheManager.set(cacheKey, result, 300000);
+
+    return result;
+  }
+
+  async getBalanceSheet(asOfDate: string) {
+    // إنشاء مفتاح cache فريد
+    const cacheKey = `balance_sheet_${asOfDate}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    // الحصول على حسابات الأصول
+    const assetAccounts = await this.accountRepository.find({
+      where: { type: 'asset' }
+    });
+
+    // الحصول على حسابات الخصوم
+    const liabilityAccounts = await this.accountRepository.find({
+      where: { type: 'liability' }
+    });
+
+    // الحصول على حسابات حقوق الملكية
+    const equityAccounts = await this.accountRepository.find({
+      where: { type: 'equity' }
+    });
+
+    // حساب أرصدة الأصول
+    const assetItems = [];
+    let totalAssets = 0;
+
+    for (const account of assetAccounts) {
+      const balance = await this.getAccountBalance(account.id, null, asOfDate);
+      if (balance.debit > 0 || balance.credit > 0) {
+        const netBalance = balance.debit - balance.credit;
+        assetItems.push({
+          accountCode: account.code,
+          accountName: account.name,
+          amount: netBalance
+        });
+        totalAssets += netBalance;
+      }
+    }
+
+    // حساب أرصدة الخصوم
+    const liabilityItems = [];
+    let totalLiabilities = 0;
+
+    for (const account of liabilityAccounts) {
+      const balance = await this.getAccountBalance(account.id, null, asOfDate);
+      if (balance.credit > 0 || balance.debit > 0) {
+        const netBalance = balance.credit - balance.debit;
+        liabilityItems.push({
+          accountCode: account.code,
+          accountName: account.name,
+          amount: netBalance
+        });
+        totalLiabilities += netBalance;
+      }
+    }
+
+    // حساب أرصدة حقوق الملكية
+    const equityItems = [];
+    let totalEquity = 0;
+
+    for (const account of equityAccounts) {
+      const balance = await this.getAccountBalance(account.id, null, asOfDate);
+      if (balance.credit > 0 || balance.debit > 0) {
+        const netBalance = balance.credit - balance.debit;
+        equityItems.push({
+          accountCode: account.code,
+          accountName: account.name,
+          amount: netBalance
+        });
+        totalEquity += netBalance;
+      }
+    }
+
+    // التحقق من توازن المعادلة المحاسبية
+    const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
+    const difference = Math.abs(totalAssets - totalLiabilitiesAndEquity);
+    const isBalanced = difference < 0.01;
+
+    const result = {
+      asOfDate,
+      assets: {
+        items: assetItems.sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+        total: totalAssets
+      },
+      liabilities: {
+        items: liabilityItems.sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+        total: totalLiabilities
+      },
+      equity: {
+        items: equityItems.sort((a, b) => a.accountCode.localeCompare(b.accountCode)),
+        total: totalEquity
+      },
+      totalLiabilitiesAndEquity,
+      difference,
+      isBalanced
+    };
+
+    // حفظ النتيجة في الـ cache لمدة 5 دقائق
+    await this.cacheManager.set(cacheKey, result, 300000);
+
+    return result;
+  }
+
+  private async getAccountBalance(accountId: number, startDate?: string, endDate?: string) {
+    let query = this.journalEntryLineRepository
+      .createQueryBuilder('line')
+      .leftJoinAndSelect('line.journalEntry', 'entry')
+      .where('line.accountId = :accountId', { accountId })
+      .andWhere('entry.isPosted = :isPosted', { isPosted: true });
+
+    if (startDate) {
+      query = query.andWhere('entry.date >= :startDate', { startDate });
+    }
+    if (endDate) {
+      query = query.andWhere('entry.date <= :endDate', { endDate });
+    }
+
+    const lines = await query.getMany();
+
+    const debit = lines.reduce((sum, line) => sum + parseFloat(line.debit.toString()), 0);
+    const credit = lines.reduce((sum, line) => sum + parseFloat(line.credit.toString()), 0);
+
+    return { debit, credit };
+  }
 }
