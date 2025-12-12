@@ -1,0 +1,333 @@
+<div class="inventory-reports-container">
+  <div class="page-header">
+    <h1>تقارير المخزون</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="printReport()">
+        <i class="fas fa-print"></i> طباعة
+      </button>
+      <button class="btn btn-success" (click)="exportToExcel()">
+        <i class="fas fa-file-excel"></i> تصدير Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'balance'"
+      (click)="switchTab('balance')">
+      أرصدة المخزون
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'movement'"
+      (click)="switchTab('movement')">
+      حركة المخزون
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'slow-moving'"
+      (click)="switchTab('slow-moving')">
+      الأصناف الراكدة
+    </button>
+  </div>
+
+  <!-- Stock Balance Report -->
+  <div *ngIf="activeTab === 'balance'" class="tab-content">
+    <div class="filters-section">
+      <h3>الفلاتر</h3>
+      <div class="filters-grid">
+        <div class="form-group">
+          <label>المخزن</label>
+          <select [(ngModel)]="balanceFilters.warehouseId" class="form-control">
+            <option value="">الكل</option>
+            <option *ngFor="let warehouse of warehouses" [value]="warehouse.id">
+              {{ warehouse.code }} - {{ warehouse.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>الصنف</label>
+          <select [(ngModel)]="balanceFilters.itemId" class="form-control">
+            <option value="">الكل</option>
+            <option *ngFor="let item of items" [value]="item.id">
+              {{ item.code }} - {{ item.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>الحد الأدنى للكمية</label>
+          <input type="number" [(ngModel)]="balanceFilters.minQuantity" class="form-control" placeholder="0">
+        </div>
+
+        <div class="form-group filter-actions">
+          <button class="btn btn-primary" (click)="loadStockBalanceReport()" [disabled]="loading">
+            <i class="fas fa-search"></i> بحث
+          </button>
+          <button class="btn btn-secondary" (click)="resetBalanceFilters()" [disabled]="loading">
+            <i class="fas fa-redo"></i> إعادة تعيين
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+    </div>
+
+    <div *ngIf="!loading && stockBalanceSummary" class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-label">إجمالي الأصناف</div>
+        <div class="summary-value">{{ stockBalanceSummary.itemCount }}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">عدد المخازن</div>
+        <div class="summary-value">{{ stockBalanceSummary.warehouseCount }}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">إجمالي الكمية</div>
+        <div class="summary-value">{{ stockBalanceSummary.totalQuantity | number:'1.2-2' }}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">إجمالي القيمة</div>
+        <div class="summary-value">{{ stockBalanceSummary.totalValue | number:'1.2-2' }} ريال</div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && stockBalanceItems.length > 0" class="table-container">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>كود المخزن</th>
+            <th>اسم المخزن</th>
+            <th>كود الصنف</th>
+            <th>اسم الصنف</th>
+            <th>الوحدة</th>
+            <th>الكمية</th>
+            <th>متوسط التكلفة</th>
+            <th>القيمة الإجمالية</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of stockBalanceItems">
+            <td>{{ item.warehouseCode }}</td>
+            <td>{{ item.warehouseName }}</td>
+            <td>{{ item.itemCode }}</td>
+            <td>{{ item.itemName }}</td>
+            <td>{{ item.unit }}</td>
+            <td class="number">{{ item.quantity | number:'1.2-2' }}</td>
+            <td class="number">{{ item.averageCost | number:'1.2-2' }}</td>
+            <td class="number">{{ item.totalValue | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!loading && stockBalanceItems.length === 0" class="no-data">
+      <i class="fas fa-inbox"></i>
+      <p>لا توجد بيانات لعرضها</p>
+    </div>
+  </div>
+
+  <!-- Stock Movement Report -->
+  <div *ngIf="activeTab === 'movement'" class="tab-content">
+    <div class="filters-section">
+      <h3>الفلاتر</h3>
+      <div class="filters-grid">
+        <div class="form-group">
+          <label>من تاريخ</label>
+          <input type="date" [(ngModel)]="movementFilters.startDate" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>إلى تاريخ</label>
+          <input type="date" [(ngModel)]="movementFilters.endDate" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>المخزن</label>
+          <select [(ngModel)]="movementFilters.warehouseId" class="form-control">
+            <option value="">الكل</option>
+            <option *ngFor="let warehouse of warehouses" [value]="warehouse.id">
+              {{ warehouse.code }} - {{ warehouse.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>الصنف</label>
+          <select [(ngModel)]="movementFilters.itemId" class="form-control">
+            <option value="">الكل</option>
+            <option *ngFor="let item of items" [value]="item.id">
+              {{ item.code }} - {{ item.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>نوع الحركة</label>
+          <select [(ngModel)]="movementFilters.movementType" class="form-control">
+            <option value="">الكل</option>
+            <option value="in">إدخال</option>
+            <option value="out">إخراج</option>
+            <option value="transfer">نقل</option>
+            <option value="adjustment">تسوية</option>
+          </select>
+        </div>
+
+        <div class="form-group filter-actions">
+          <button class="btn btn-primary" (click)="loadStockMovementReport()" [disabled]="loading">
+            <i class="fas fa-search"></i> بحث
+          </button>
+          <button class="btn btn-secondary" (click)="resetMovementFilters()" [disabled]="loading">
+            <i class="fas fa-redo"></i> إعادة تعيين
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+    </div>
+
+    <div *ngIf="!loading && stockMovementSummary" class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-label">عدد الحركات</div>
+        <div class="summary-value">{{ stockMovementSummary.movementCount }}</div>
+      </div>
+      <div class="summary-card success">
+        <div class="summary-label">إجمالي الإدخال</div>
+        <div class="summary-value">{{ stockMovementSummary.totalQuantityIn | number:'1.2-2' }}</div>
+        <div class="summary-sub">{{ stockMovementSummary.totalValueIn | number:'1.2-2' }} ريال</div>
+      </div>
+      <div class="summary-card danger">
+        <div class="summary-label">إجمالي الإخراج</div>
+        <div class="summary-value">{{ stockMovementSummary.totalQuantityOut | number:'1.2-2' }}</div>
+        <div class="summary-sub">{{ stockMovementSummary.totalValueOut | number:'1.2-2' }} ريال</div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && stockMovementItems.length > 0" class="table-container">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>رقم المرجع</th>
+            <th>نوع الحركة</th>
+            <th>من مخزن</th>
+            <th>إلى مخزن</th>
+            <th>الصنف</th>
+            <th>الكمية</th>
+            <th>تكلفة الوحدة</th>
+            <th>التكلفة الإجمالية</th>
+            <th>ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of stockMovementItems">
+            <td>{{ item.date | date:'yyyy-MM-dd' }}</td>
+            <td>{{ item.referenceNumber }}</td>
+            <td>
+              <span class="badge" [class]="'badge-' + item.movementType">
+                {{ item.movementTypeAr }}
+              </span>
+            </td>
+            <td>{{ item.warehouseCode }} - {{ item.warehouseName }}</td>
+            <td>{{ item.toWarehouseCode ? (item.toWarehouseCode + ' - ' + item.toWarehouseName) : '-' }}</td>
+            <td>{{ item.itemCode }} - {{ item.itemName }}</td>
+            <td class="number">{{ item.quantity | number:'1.2-2' }}</td>
+            <td class="number">{{ item.unitCost | number:'1.2-2' }}</td>
+            <td class="number">{{ item.totalCost | number:'1.2-2' }}</td>
+            <td>{{ item.notes || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!loading && stockMovementItems.length === 0" class="no-data">
+      <i class="fas fa-inbox"></i>
+      <p>لا توجد حركات لعرضها</p>
+    </div>
+  </div>
+
+  <!-- Slow Moving Items Report -->
+  <div *ngIf="activeTab === 'slow-moving'" class="tab-content">
+    <div class="filters-section">
+      <h3>الفلاتر</h3>
+      <div class="filters-grid">
+        <div class="form-group">
+          <label>عدد الأيام</label>
+          <input type="number" [(ngModel)]="slowMovingFilters.days" class="form-control" min="1">
+        </div>
+
+        <div class="form-group filter-actions">
+          <button class="btn btn-primary" (click)="loadSlowMovingReport()" [disabled]="loading">
+            <i class="fas fa-search"></i> بحث
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+    </div>
+
+    <div *ngIf="!loading && slowMovingSummary" class="summary-cards">
+      <div class="summary-card warning">
+        <div class="summary-label">عدد الأصناف الراكدة</div>
+        <div class="summary-value">{{ slowMovingSummary.totalItems }}</div>
+      </div>
+      <div class="summary-card warning">
+        <div class="summary-label">إجمالي القيمة</div>
+        <div class="summary-value">{{ slowMovingSummary.totalValue | number:'1.2-2' }} ريال</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">فترة الركود</div>
+        <div class="summary-value">{{ slowMovingSummary.cutoffDays }} يوم</div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && slowMovingItems.length > 0" class="table-container">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>المخزن</th>
+            <th>كود الصنف</th>
+            <th>اسم الصنف</th>
+            <th>الوحدة</th>
+            <th>الكمية</th>
+            <th>متوسط التكلفة</th>
+            <th>القيمة الإجمالية</th>
+            <th>آخر حركة</th>
+            <th>عدد الأيام</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of slowMovingItems">
+            <td>{{ item.warehouseCode }} - {{ item.warehouseName }}</td>
+            <td>{{ item.itemCode }}</td>
+            <td>{{ item.itemName }}</td>
+            <td>{{ item.unit }}</td>
+            <td class="number">{{ item.quantity | number:'1.2-2' }}</td>
+            <td class="number">{{ item.averageCost | number:'1.2-2' }}</td>
+            <td class="number">{{ item.totalValue | number:'1.2-2' }}</td>
+            <td>{{ item.lastMovementDate ? (item.lastMovementDate | date:'yyyy-MM-dd') : 'لا توجد حركة' }}</td>
+            <td class="number">
+              <span class="badge badge-warning">
+                {{ item.daysSinceLastMovement || 'N/A' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!loading && slowMovingItems.length === 0" class="no-data">
+      <i class="fas fa-check-circle"></i>
+      <p>لا توجد أصناف راكدة</p>
+    </div>
+  </div>
+</div>

@@ -18,6 +18,7 @@ import { IncomeStatementComponent } from './pages/reports/income-statement/incom
 import { BalanceSheetComponent } from './pages/reports/balance-sheet/balance-sheet';
 import { CashFlowComponent } from './pages/reports/cash-flow/cash-flow';
 import { RecurringTransactionsComponent } from './pages/reports/recurring-transactions/recurring-transactions';
+import { InventoryReportsComponent } from './pages/reports/inventory-reports/inventory-reports.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -34,6 +35,7 @@ export const routes: Routes = [
   { path: 'reports/balance-sheet', component: BalanceSheetComponent },
   { path: 'reports/cash-flow', component: CashFlowComponent },
   { path: 'reports/recurring-transactions', component: RecurringTransactionsComponent },
+  { path: 'reports/inventory-reports', component: InventoryReportsComponent },
   { path: 'inventory', component: Dashboard },
   { path: 'inventory/warehouse-groups', component: WarehouseGroupsComponent },
   { path: 'inventory/warehouses', component: WarehousesComponent },
