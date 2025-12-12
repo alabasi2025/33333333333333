@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JournalEntry } from '../journal-entries/journal-entry.entity';
 import { JournalEntryLine } from '../journal-entries/journal-entry-line.entity';
 import { Account } from '../accounts/account.entity';
 
-interface TrialBalanceItem {
+export interface TrialBalanceItem {
   accountCode: string;
   accountName: string;
   debit: number;
@@ -14,7 +16,7 @@ interface TrialBalanceItem {
   balanceType: 'debit' | 'credit';
 }
 
-interface TrialBalanceReport {
+export interface TrialBalanceReport {
   items: TrialBalanceItem[];
   totalDebit: number;
   totalCredit: number;
@@ -29,9 +31,19 @@ export class ReportsService {
     private journalEntryLineRepository: Repository<JournalEntryLine>,
     @InjectRepository(Account)
     private accountRepository: Repository<Account>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getTrialBalance(startDate?: string, endDate?: string, postingStatus?: 'all' | 'posted' | 'unposted'): Promise<TrialBalanceReport> {
+    // إنشاء مفتاح cache فريد بناءً على المعاملات
+    const cacheKey = `trial_balance_${startDate || 'all'}_${endDate || 'all'}_${postingStatus || 'all'}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get<TrialBalanceReport>(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     // بناء الاستعلام
     let query = this.journalEntryLineRepository
       .createQueryBuilder('line')
@@ -103,16 +115,30 @@ export class ReportsService {
     const difference = Math.abs(totalDebit - totalCredit);
     const isBalanced = difference < 0.01;
 
-    return {
+    const result = {
       items,
       totalDebit,
       totalCredit,
       difference,
       isBalanced,
     };
+
+    // حفظ النتيجة في الـ cache لمدة 5 دقائق
+    await this.cacheManager.set(cacheKey, result, 300000);
+
+    return result;
   }
 
   async getAccountStatement(accountId: number, startDate?: string, endDate?: string) {
+    // إنشاء مفتاح cache فريد
+    const cacheKey = `account_statement_${accountId}_${startDate || 'all'}_${endDate || 'all'}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     let query = this.journalEntryLineRepository
       .createQueryBuilder('line')
       .leftJoinAndSelect('line.journalEntry', 'entry')
@@ -149,7 +175,7 @@ export class ReportsService {
 
     const account = await this.accountRepository.findOne({ where: { id: accountId } });
 
-    return {
+    const result = {
       account: {
         code: account?.code,
         name: account?.name,
@@ -159,5 +185,10 @@ export class ReportsService {
       totalCredit: lines.reduce((sum, line) => sum + parseFloat(line.credit.toString()), 0),
       finalBalance: balance,
     };
+
+    // حفظ النتيجة في الـ cache لمدة 5 دقائق
+    await this.cacheManager.set(cacheKey, result, 300000);
+
+    return result;
   }
 }

@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Not, IsNull } from 'typeorm';
 import { Account } from './account.entity';
@@ -8,6 +10,7 @@ export class AccountsService {
   constructor(
     @InjectRepository(Account)
     private accountRepository: Repository<Account>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.seedInitialData();
   }
@@ -59,6 +62,15 @@ export class AccountsService {
   }
 
   async findAll(unitId?: number, subType?: string): Promise<Account[]> {
+    // إنشاء مفتاح cache فريد
+    const cacheKey = `accounts_list_${unitId || 'all'}_${subType || 'all'}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get<Account[]>(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     const where: any = {};
     
     if (unitId) {
@@ -74,6 +86,9 @@ export class AccountsService {
       relations: ['children'],
       order: { order: 'ASC', code: 'ASC' },
     });
+    
+    // حفظ النتيجة في الـ cache لمدة 10 دقائق
+    await this.cacheManager.set(cacheKey, accounts, 600000);
     
     return accounts;
   }
@@ -93,11 +108,20 @@ export class AccountsService {
 
   async create(accountData: Partial<Account>): Promise<Account> {
     const account = this.accountRepository.create(accountData);
-    return await this.accountRepository.save(account);
+    const result = await this.accountRepository.save(account);
+    
+    // مسح الـ cache عند إضافة حساب جديد
+    await this.clearAccountsCache();
+    
+    return result;
   }
 
   async update(id: number, accountData: Partial<Account>): Promise<Account> {
     await this.accountRepository.update(id, accountData);
+    
+    // مسح الـ cache عند تحديث حساب
+    await this.clearAccountsCache();
+    
     return await this.findOne(id);
   }
 
@@ -106,6 +130,9 @@ export class AccountsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
+    
+    // مسح الـ cache عند حذف حساب
+    await this.clearAccountsCache();
   }
 
   async findAvailableIntermediateAccounts(excludeId?: number): Promise<Account[]> {
@@ -156,5 +183,13 @@ export class AccountsService {
 
     // Filter out used accounts
     return allIntermediateAccounts.filter(account => !usedIds.has(account.id));
+  }
+
+  private async clearAccountsCache(): Promise<void> {
+    // مسح جميع مفاتيح الـ cache المتعلقة بالحسابات
+    const keys = ['accounts_list_all_all'];
+    for (const key of keys) {
+      await this.cacheManager.del(key);
+    }
   }
 }

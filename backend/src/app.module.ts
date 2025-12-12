@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { AccountsModule } from './accounts/accounts.module';
@@ -67,6 +68,11 @@ import { AuthModule } from './auth/auth.module';
     PaymentVouchersModule,
     ReceiptVouchersModule,
     AuthModule,
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 300, // 5 minutes
+      max: 100, // maximum number of items in cache
+    }),
   ],
 })
 export class AppModule {}

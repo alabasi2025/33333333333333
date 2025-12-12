@@ -14,6 +14,7 @@ import {
 import { JournalEntriesService } from './journal-entries.service';
 import { JournalEntry } from './journal-entry.entity';
 import { JournalEntryLine } from './journal-entry-line.entity';
+import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 
 @Controller('journal-entries')
 export class JournalEntriesController {
@@ -24,12 +25,22 @@ export class JournalEntriesController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('accountId') accountId?: string,
-  ): Promise<JournalEntry[]> {
-    return await this.journalEntriesService.findAll({
-      startDate,
-      endDate,
-      accountId: accountId ? parseInt(accountId) : undefined,
-    });
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ): Promise<PaginatedResult<JournalEntry>> {
+    const pagination: PaginationDto = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+    };
+
+    return await this.journalEntriesService.findAll(
+      {
+        startDate,
+        endDate,
+        accountId: accountId ? parseInt(accountId) : undefined,
+      },
+      pagination,
+    );
   }
 
   @Get(':id')

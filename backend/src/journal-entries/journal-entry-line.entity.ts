@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { JournalEntry } from './journal-entry.entity';
 import { Account } from '../accounts/account.entity';
-import { Decimal } from 'decimal.js';
 import { decimalTransformer } from '../common/transformers/decimal.transformer';
 
 @Entity('journal_entry_lines')
@@ -24,10 +23,10 @@ export class JournalEntryLine {
   account: Account;
 
   @Column({ type: 'decimal', precision: 15, scale: 4, default: 0, transformer: decimalTransformer })
-  debit: Decimal;
+  debit: any;
 
   @Column({ type: 'decimal', precision: 15, scale: 4, default: 0, transformer: decimalTransformer })
-  credit: Decimal;
+  credit: any;
 
   @Column({ type: 'text', nullable: true })
   description: string;

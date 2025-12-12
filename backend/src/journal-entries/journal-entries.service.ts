@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { PaginationDto, PaginatedResult } from '../common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JournalEntry } from './journal-entry.entity';
@@ -70,11 +71,14 @@ export class JournalEntriesService {
     return await this.findOne(savedEntry.id);
   }
 
-  async findAll(filters?: {
-    startDate?: string;
-    endDate?: string;
-    accountId?: number;
-  }): Promise<JournalEntry[]> {
+  async findAll(
+    filters?: {
+      startDate?: string;
+      endDate?: string;
+      accountId?: number;
+    },
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResult<JournalEntry>> {
     const query = this.journalEntryRepository
       .createQueryBuilder('entry')
       .leftJoinAndSelect('entry.lines', 'lines')
@@ -94,7 +98,30 @@ export class JournalEntriesService {
       query.andWhere('lines.accountId = :accountId', { accountId: filters.accountId });
     }
 
-    return await query.getMany();
+    // إضافة Pagination
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 10;
+    const skip = (page - 1) * limit;
+
+    // الحصول على العدد الإجمالي
+    const total = await query.getCount();
+
+    // تطبيق Pagination
+    query.skip(skip).take(limit);
+
+    const data = await query.getMany();
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async findOne(id: number): Promise<JournalEntry> {

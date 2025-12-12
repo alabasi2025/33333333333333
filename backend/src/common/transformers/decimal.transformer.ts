@@ -1,5 +1,5 @@
 import { ValueTransformer } from 'typeorm';
-import { Decimal } from 'decimal.js';
+import Decimal from 'decimal.js';
 
 /**
  * Transformer لتحويل القيم العددية إلى Decimal والعكس
@@ -9,12 +9,12 @@ export class DecimalTransformer implements ValueTransformer {
   /**
    * تحويل من Decimal إلى string للحفظ في قاعدة البيانات
    */
-  to(value: Decimal | number | string | null): string | null {
+  to(value: any): string | null {
     if (value === null || value === undefined) {
       return null;
     }
 
-    if (value instanceof Decimal) {
+    if (typeof value === 'object' && value !== null && 'toString' in value) {
       return value.toString();
     }
 
@@ -24,7 +24,7 @@ export class DecimalTransformer implements ValueTransformer {
   /**
    * تحويل من string إلى Decimal عند القراءة من قاعدة البيانات
    */
-  from(value: string | null): Decimal | null {
+  from(value: string | null): any {
     if (value === null || value === undefined) {
       return null;
     }
