@@ -1,0 +1,109 @@
+<div class="income-statement-container">
+  <div class="page-header">
+    <h1>قائمة الدخل</h1>
+    <p class="subtitle">Income Statement</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>من تاريخ:</label>
+      <input type="date" [(ngModel)]="startDate" (change)="loadReport()" />
+    </div>
+    <div class="filter-group">
+      <label>إلى تاريخ:</label>
+      <input type="date" [(ngModel)]="endDate" (change)="loadReport()" />
+    </div>
+    <button class="btn-primary" (click)="loadReport()">
+      <i class="fas fa-sync"></i> تحديث
+    </button>
+    <button class="btn-secondary" (click)="printReport()">
+      <i class="fas fa-print"></i> طباعة
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <div *ngIf="report && !loading" class="report-content">
+    <div class="report-header">
+      <h2>قائمة الدخل</h2>
+      <p class="period">من {{ report.period.startDate }} إلى {{ report.period.endDate }}</p>
+    </div>
+
+    <!-- الإيرادات -->
+    <div class="section">
+      <h3 class="section-title">الإيرادات (Revenue)</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>رمز الحساب</th>
+            <th>اسم الحساب</th>
+            <th class="amount">المبلغ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of report.revenue.items">
+            <td>{{ item.accountCode }}</td>
+            <td>{{ item.accountName }}</td>
+            <td class="amount">{{ item.amount | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="report.revenue.items.length === 0">
+            <td colspan="3" class="no-data">لا توجد إيرادات</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2"><strong>إجمالي الإيرادات</strong></td>
+            <td class="amount"><strong>{{ report.revenue.total | number:'1.2-2' }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- المصروفات -->
+    <div class="section">
+      <h3 class="section-title">المصروفات (Expenses)</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>رمز الحساب</th>
+            <th>اسم الحساب</th>
+            <th class="amount">المبلغ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of report.expenses.items">
+            <td>{{ item.accountCode }}</td>
+            <td>{{ item.accountName }}</td>
+            <td class="amount">{{ item.amount | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="report.expenses.items.length === 0">
+            <td colspan="3" class="no-data">لا توجد مصروفات</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2"><strong>إجمالي المصروفات</strong></td>
+            <td class="amount"><strong>{{ report.expenses.total | number:'1.2-2' }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- صافي الدخل -->
+    <div class="net-income-section">
+      <div class="net-income-card" [class.profit]="report.netIncome >= 0" [class.loss]="report.netIncome < 0">
+        <h3>{{ report.netIncome >= 0 ? 'صافي الربح' : 'صافي الخسارة' }}</h3>
+        <p class="net-income-label">Net Income</p>
+        <div class="net-income-amount">
+          {{ report.netIncome | number:'1.2-2' }} ريال
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<div class="recurring-transactions-container">
+  <div class="page-header">
+    <h1>القيود المتكررة</h1>
+    <p class="subtitle">Recurring Transactions</p>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <div *ngIf="!loading && transactions.length === 0" class="no-data-message">
+    <i class="fas fa-info-circle"></i>
+    <p>لا توجد قيود متكررة حالياً</p>
+  </div>
+
+  <div *ngIf="!loading && transactions.length > 0" class="transactions-grid">
+    <div *ngFor="let transaction of transactions" class="transaction-card" [class.inactive]="!transaction.isActive">
+      <div class="card-header">
+        <h3>{{ transaction.name }}</h3>
+        <div class="status-badge" [class.active]="transaction.isActive" [class.inactive]="!transaction.isActive">
+          {{ transaction.isActive ? 'نشط' : 'متوقف' }}
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p class="description">{{ transaction.description }}</p>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <i class="fas fa-sync"></i>
+            <span class="label">التكرار:</span>
+            <span class="value">{{ getFrequencyLabel(transaction.frequency) }}</span>
+          </div>
+
+          <div class="info-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span class="label">تاريخ البداية:</span>
+            <span class="value">{{ transaction.startDate }}</span>
+          </div>
+
+          <div class="info-item">
+            <i class="fas fa-clock"></i>
+            <span class="label">التنفيذ التالي:</span>
+            <span class="value">{{ transaction.nextRunDate }}</span>
+          </div>
+
+          <div class="info-item" *ngIf="transaction.endDate">
+            <i class="fas fa-calendar-times"></i>
+            <span class="label">تاريخ النهاية:</span>
+            <span class="value">{{ transaction.endDate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn-execute" (click)="execute(transaction.id)" [disabled]="!transaction.isActive">
+          <i class="fas fa-play"></i> تنفيذ الآن
+        </button>
+        <button class="btn-toggle" (click)="toggleActive(transaction)">
+          <i [class]="transaction.isActive ? 'fas fa-pause' : 'fas fa-play'"></i>
+          {{ transaction.isActive ? 'إيقاف' : 'تفعيل' }}
+        </button>
+        <button class="btn-delete" (click)="delete(transaction.id)">
+          <i class="fas fa-trash"></i> حذف
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

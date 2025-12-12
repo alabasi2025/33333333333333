@@ -1,0 +1,252 @@
+.cash-flow-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 0 0;
+}
+
+.filters-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #545b62;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+  color: #007bff;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.report-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #007bff;
+}
+
+.report-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.period {
+  color: #666;
+  margin: 10px 0 0 0;
+  font-size: 1rem;
+}
+
+.balance-card {
+  padding: 25px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.balance-card.opening {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+}
+
+.balance-card.closing {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.balance-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.balance-amount {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  background: #007bff;
+  color: white;
+  padding: 12px 20px;
+  margin: 0 0 15px 0;
+  border-radius: 4px;
+  font-size: 1.2rem;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.report-table thead {
+  background: #f8f9fa;
+}
+
+.report-table th {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+}
+
+.report-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #dee2e6;
+  text-align: right;
+}
+
+.report-table td.amount,
+.report-table th.amount {
+  text-align: left;
+  font-family: 'Courier New', monospace;
+}
+
+.report-table tbody tr.inflow {
+  background: #d4edda;
+}
+
+.report-table tbody tr.outflow {
+  background: #f8d7da;
+}
+
+.report-table tbody tr:hover {
+  opacity: 0.8;
+}
+
+.no-data {
+  text-align: center !important;
+  color: #999;
+  font-style: italic;
+  padding: 20px !important;
+}
+
+.positive {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.negative {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.total-row {
+  background: #e9ecef;
+  font-weight: bold;
+}
+
+.total-row td {
+  border-top: 2px solid #495057;
+  border-bottom: 2px solid #495057;
+  padding: 15px 12px;
+}
+
+@media print {
+  .filters-section,
+  .btn-primary,
+  .btn-secondary {
+    display: none !important;
+  }
+  
+  .report-content {
+    box-shadow: none;
+  }
+}

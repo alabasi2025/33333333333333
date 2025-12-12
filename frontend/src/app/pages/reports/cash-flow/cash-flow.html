@@ -1,0 +1,90 @@
+<div class="cash-flow-container">
+  <div class="page-header">
+    <h1>قائمة التدفقات النقدية</h1>
+    <p class="subtitle">Cash Flow Statement</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>من تاريخ:</label>
+      <input type="date" [(ngModel)]="startDate" (change)="loadReport()" />
+    </div>
+    <div class="filter-group">
+      <label>إلى تاريخ:</label>
+      <input type="date" [(ngModel)]="endDate" (change)="loadReport()" />
+    </div>
+    <button class="btn-primary" (click)="loadReport()">
+      <i class="fas fa-sync"></i> تحديث
+    </button>
+    <button class="btn-secondary" (click)="printReport()">
+      <i class="fas fa-print"></i> طباعة
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <div *ngIf="report && !loading" class="report-content">
+    <div class="report-header">
+      <h2>قائمة التدفقات النقدية</h2>
+      <p class="period">من {{ report.period.startDate }} إلى {{ report.period.endDate }}</p>
+    </div>
+
+    <!-- الرصيد الافتتاحي -->
+    <div class="balance-card opening">
+      <h3>الرصيد الافتتاحي</h3>
+      <p class="balance-amount">{{ report.openingBalance | number:'1.2-2' }} ريال</p>
+    </div>
+
+    <!-- الحركات النقدية -->
+    <div class="section">
+      <h3 class="section-title">الحركات النقدية</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الوصف</th>
+            <th>الحساب</th>
+            <th class="amount">المبلغ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of report.cashFlowItems" [class.inflow]="item.amount > 0" [class.outflow]="item.amount < 0">
+            <td>{{ item.date }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.accountCode }} - {{ item.accountName }}</td>
+            <td class="amount">
+              <span [class.positive]="item.amount > 0" [class.negative]="item.amount < 0">
+                {{ item.amount | number:'1.2-2' }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="report.cashFlowItems.length === 0">
+            <td colspan="4" class="no-data">لا توجد حركات نقدية</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3"><strong>إجمالي التدفق النقدي</strong></td>
+            <td class="amount">
+              <strong [class.positive]="report.totalCashFlow > 0" [class.negative]="report.totalCashFlow < 0">
+                {{ report.totalCashFlow | number:'1.2-2' }}
+              </strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- الرصيد الختامي -->
+    <div class="balance-card closing">
+      <h3>الرصيد الختامي</h3>
+      <p class="balance-amount">{{ report.closingBalance | number:'1.2-2' }} ريال</p>
+    </div>
+  </div>
+</div>

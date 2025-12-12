@@ -14,6 +14,10 @@ import { StockInComponent } from './pages/stock-in/stock-in';
 import { StockOutComponent } from './pages/stock-out/stock-out';
 import { SupplierGroupsComponent } from './pages/supplier-groups/supplier-groups';
 import { SuppliersComponentNew } from './pages/suppliers/suppliers';
+import { IncomeStatementComponent } from './pages/reports/income-statement/income-statement';
+import { BalanceSheetComponent } from './pages/reports/balance-sheet/balance-sheet';
+import { CashFlowComponent } from './pages/reports/cash-flow/cash-flow';
+import { RecurringTransactionsComponent } from './pages/reports/recurring-transactions/recurring-transactions';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -26,6 +30,10 @@ export const routes: Routes = [
   { path: 'financial/payment-voucher', component: PaymentVoucherComponent },
   { path: 'financial/receipt-voucher', component: ReceiptVoucherComponent },
   { path: 'financial/trial-balance', component: TrialBalanceComponent },
+  { path: 'reports/income-statement', component: IncomeStatementComponent },
+  { path: 'reports/balance-sheet', component: BalanceSheetComponent },
+  { path: 'reports/cash-flow', component: CashFlowComponent },
+  { path: 'reports/recurring-transactions', component: RecurringTransactionsComponent },
   { path: 'inventory', component: Dashboard },
   { path: 'inventory/warehouse-groups', component: WarehouseGroupsComponent },
   { path: 'inventory/warehouses', component: WarehousesComponent },

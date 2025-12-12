@@ -96,6 +96,36 @@
     </div>
     
     <div class="nav-group">
+      <div class="nav-item" (click)="toggleReports()">
+        <span class="icon">📊</span>
+        <span class="label">التقارير المالية</span>
+        <span class="arrow" [class.open]="isReportsOpen">▼</span>
+      </div>
+      
+      <div class="submenu" [class.open]="isReportsOpen">
+        <a routerLink="/reports/income-statement" routerLinkActive="active" class="submenu-item">
+          <span class="icon">📈</span>
+          <span class="label">قائمة الدخل</span>
+        </a>
+        
+        <a routerLink="/reports/balance-sheet" routerLinkActive="active" class="submenu-item">
+          <span class="icon">⚖️</span>
+          <span class="label">الميزانية العمومية</span>
+        </a>
+        
+        <a routerLink="/reports/cash-flow" routerLinkActive="active" class="submenu-item">
+          <span class="icon">💵</span>
+          <span class="label">التدفقات النقدية</span>
+        </a>
+        
+        <a routerLink="/reports/recurring-transactions" routerLinkActive="active" class="submenu-item">
+          <span class="icon">🔁</span>
+          <span class="label">القيود المتكررة</span>
+        </a>
+      </div>
+    </div>
+    
+    <div class="nav-group">
       <div class="nav-item" (click)="toggleSuppliers()">
         <span class="icon">🏢</span>
         <span class="label">نظام الموردين</span>

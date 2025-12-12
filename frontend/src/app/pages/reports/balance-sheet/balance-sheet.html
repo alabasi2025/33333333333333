@@ -1,0 +1,160 @@
+<div class="balance-sheet-container">
+  <div class="page-header">
+    <h1>الميزانية العمومية</h1>
+    <p class="subtitle">Balance Sheet</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>كما في تاريخ:</label>
+      <input type="date" [(ngModel)]="asOfDate" (change)="loadReport()" />
+    </div>
+    <button class="btn-primary" (click)="loadReport()">
+      <i class="fas fa-sync"></i> تحديث
+    </button>
+    <button class="btn-secondary" (click)="printReport()">
+      <i class="fas fa-print"></i> طباعة
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <div *ngIf="report && !loading" class="report-content">
+    <div class="report-header">
+      <h2>الميزانية العمومية</h2>
+      <p class="period">كما في {{ report.asOfDate }}</p>
+    </div>
+
+    <!-- تنبيه عدم التوازن -->
+    <div *ngIf="!report.isBalanced" class="warning-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      <strong>تحذير:</strong> الميزانية غير متوازنة! الفرق: {{ report.difference | number:'1.2-2' }} ريال
+    </div>
+
+    <div class="balance-sheet-grid">
+      <!-- الأصول -->
+      <div class="section">
+        <h3 class="section-title assets">الأصول (Assets)</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>رمز الحساب</th>
+              <th>اسم الحساب</th>
+              <th class="amount">المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of report.assets.items">
+              <td>{{ item.accountCode }}</td>
+              <td>{{ item.accountName }}</td>
+              <td class="amount">{{ item.amount | number:'1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="report.assets.items.length === 0">
+              <td colspan="3" class="no-data">لا توجد أصول</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2"><strong>إجمالي الأصول</strong></td>
+              <td class="amount"><strong>{{ report.assets.total | number:'1.2-2' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- الخصوم وحقوق الملكية -->
+      <div class="section">
+        <!-- الخصوم -->
+        <h3 class="section-title liabilities">الخصوم (Liabilities)</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>رمز الحساب</th>
+              <th>اسم الحساب</th>
+              <th class="amount">المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of report.liabilities.items">
+              <td>{{ item.accountCode }}</td>
+              <td>{{ item.accountName }}</td>
+              <td class="amount">{{ item.amount | number:'1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="report.liabilities.items.length === 0">
+              <td colspan="3" class="no-data">لا توجد خصوم</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2"><strong>إجمالي الخصوم</strong></td>
+              <td class="amount"><strong>{{ report.liabilities.total | number:'1.2-2' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- حقوق الملكية -->
+        <h3 class="section-title equity">حقوق الملكية (Equity)</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>رمز الحساب</th>
+              <th>اسم الحساب</th>
+              <th class="amount">المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of report.equity.items">
+              <td>{{ item.accountCode }}</td>
+              <td>{{ item.accountName }}</td>
+              <td class="amount">{{ item.amount | number:'1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="report.equity.items.length === 0">
+              <td colspan="3" class="no-data">لا توجد حقوق ملكية</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2"><strong>إجمالي حقوق الملكية</strong></td>
+              <td class="amount"><strong>{{ report.equity.total | number:'1.2-2' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- الإجمالي -->
+        <table class="report-table grand-total-table">
+          <tfoot>
+            <tr class="grand-total-row">
+              <td colspan="2"><strong>إجمالي الخصوم وحقوق الملكية</strong></td>
+              <td class="amount"><strong>{{ report.totalLiabilitiesAndEquity | number:'1.2-2' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- المعادلة المحاسبية -->
+    <div class="accounting-equation">
+      <div class="equation-card" [class.balanced]="report.isBalanced" [class.unbalanced]="!report.isBalanced">
+        <h3>المعادلة المحاسبية</h3>
+        <p class="equation">
+          <span class="assets-value">{{ report.assets.total | number:'1.2-2' }}</span>
+          <span class="equals">=</span>
+          <span class="liabilities-value">{{ report.liabilities.total | number:'1.2-2' }}</span>
+          <span class="plus">+</span>
+          <span class="equity-value">{{ report.equity.total | number:'1.2-2' }}</span>
+        </p>
+        <p class="equation-label">Assets = Liabilities + Equity</p>
+        <div class="balance-status">
+          <i [class]="report.isBalanced ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+          {{ report.isBalanced ? 'متوازنة' : 'غير متوازنة' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

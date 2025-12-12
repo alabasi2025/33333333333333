@@ -11,6 +11,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class Sidebar {
   isFinancialOpen = false;
   isInventoryOpen = false;
+  isReportsOpen = false;
   isSuppliersOpen = false;
 
   toggleFinancial() {
@@ -19,6 +20,10 @@ export class Sidebar {
 
   toggleInventory() {
     this.isInventoryOpen = !this.isInventoryOpen;
+  }
+
+  toggleReports() {
+    this.isReportsOpen = !this.isReportsOpen;
   }
 
   toggleSuppliers() {
