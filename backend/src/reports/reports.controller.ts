@@ -1,4 +1,5 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { ReportsService } from './reports.service';
 
 @Controller('reports')
@@ -44,5 +45,40 @@ export class ReportsController {
     @Query('endDate') endDate: string,
   ) {
     return await this.reportsService.getCashFlowStatement(startDate, endDate);
+  }
+
+  @Get('income-statement/pdf')
+  async getIncomeStatementPdf(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.reportsService.generateIncomeStatementPdf(startDate, endDate);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=income-statement-${startDate}-${endDate}.pdf`);
+    res.send(pdfBuffer);
+  }
+
+  @Get('balance-sheet/pdf')
+  async getBalanceSheetPdf(
+    @Query('asOfDate') asOfDate: string,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.reportsService.generateBalanceSheetPdf(asOfDate);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=balance-sheet-${asOfDate}.pdf`);
+    res.send(pdfBuffer);
+  }
+
+  @Get('cash-flow/pdf')
+  async getCashFlowPdf(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response,
+  ) {
+    const pdfBuffer = await this.reportsService.generateCashFlowPdf(startDate, endDate);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=cash-flow-${startDate}-${endDate}.pdf`);
+    res.send(pdfBuffer);
   }
 }

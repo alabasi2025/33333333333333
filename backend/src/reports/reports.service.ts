@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { PdfGeneratorService } from './pdf-generator.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,13 +28,14 @@ export interface TrialBalanceReport {
 @Injectable()
 export class ReportsService {
   constructor(
-    @InjectRepository(JournalEntryLine)
-    private journalEntryLineRepository: Repository<JournalEntryLine>,
     @InjectRepository(Account)
     private accountRepository: Repository<Account>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectRepository(JournalEntryLine)
+    private journalEntryLineRepository: Repository<JournalEntryLine>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
+    private pdfGeneratorService: PdfGeneratorService,
   ) {}
-
   async getTrialBalance(startDate?: string, endDate?: string, postingStatus?: 'all' | 'posted' | 'unposted'): Promise<TrialBalanceReport> {
     // إنشاء مفتاح cache فريد بناءً على المعاملات
     const cacheKey = `trial_balance_${startDate || 'all'}_${endDate || 'all'}_${postingStatus || 'all'}`;
@@ -477,5 +479,20 @@ export class ReportsService {
     await this.cacheManager.set(cacheKey, result, 300000);
 
     return result;
+  }
+
+  async generateIncomeStatementPdf(startDate: string, endDate: string): Promise<Buffer> {
+    const data = await this.getIncomeStatement(startDate, endDate);
+    return await this.pdfGeneratorService.generateIncomeStatementPdf(data);
+  }
+
+  async generateBalanceSheetPdf(asOfDate: string): Promise<Buffer> {
+    const data = await this.getBalanceSheet(asOfDate);
+    return await this.pdfGeneratorService.generateBalanceSheetPdf(data);
+  }
+
+  async generateCashFlowPdf(startDate: string, endDate: string): Promise<Buffer> {
+    const data = await this.getCashFlowStatement(startDate, endDate);
+    return await this.pdfGeneratorService.generateCashFlowPdf(data);
   }
 }
