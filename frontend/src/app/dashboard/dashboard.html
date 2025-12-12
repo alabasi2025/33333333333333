@@ -1,38 +1,159 @@
 <div class="dashboard-container">
-  <h1>لوحة التحكم</h1>
-  <p class="welcome-text">مرحباً بك في نظام SEMOP - نظام تخطيط موارد المؤسسات</p>
-  
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">🏢</div>
-      <div class="stat-content">
-        <h3>الموردين</h3>
-        <p class="stat-number">0</p>
-      </div>
+  <div class="dashboard-header">
+    <h1>لوحة التحكم</h1>
+    <p class="welcome-text">مرحباً بك في نظام SEMOP - نظام تخطيط موارد المؤسسات</p>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Financial Stats -->
+    <div class="section-title">
+      <h2>📊 الإحصائيات المالية</h2>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-icon">🛒</div>
-      <div class="stat-content">
-        <h3>المشتريات</h3>
-        <p class="stat-number">0</p>
+    <div class="stats-grid">
+      <div class="stat-card revenue">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <h3>الإيرادات</h3>
+          <p class="stat-number">{{ formatCurrency(stats.totalRevenue) }}</p>
+          <span class="stat-label">Total Revenue</span>
+        </div>
+      </div>
+      
+      <div class="stat-card expenses">
+        <div class="stat-icon">📉</div>
+        <div class="stat-content">
+          <h3>المصروفات</h3>
+          <p class="stat-number">{{ formatCurrency(stats.totalExpenses) }}</p>
+          <span class="stat-label">Total Expenses</span>
+        </div>
+      </div>
+      
+      <div class="stat-card net-income" [class.profit]="stats.netIncome > 0" [class.loss]="stats.netIncome < 0">
+        <div class="stat-icon">💵</div>
+        <div class="stat-content">
+          <h3>صافي الدخل</h3>
+          <p class="stat-number">{{ formatCurrency(stats.netIncome) }}</p>
+          <span class="stat-label">Net Income</span>
+        </div>
+      </div>
+      
+      <div class="stat-card cash">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <h3>الرصيد النقدي</h3>
+          <p class="stat-number">{{ formatCurrency(stats.cashBalance) }}</p>
+          <span class="stat-label">Cash Balance</span>
+        </div>
       </div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">📦</div>
-      <div class="stat-content">
-        <h3>المخزون</h3>
-        <p class="stat-number">0</p>
-      </div>
+
+    <!-- System Stats -->
+    <div class="section-title">
+      <h2>📋 إحصائيات النظام</h2>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-icon">💰</div>
-      <div class="stat-content">
-        <h3>المالية</h3>
-        <p class="stat-number">0 ريال</p>
+    <div class="stats-grid secondary">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <h3>الحسابات</h3>
+          <p class="stat-number">{{ formatNumber(stats.accountsCount) }}</p>
+          <span class="stat-label">Accounts</span>
+        </div>
       </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-content">
+          <h3>الموردين</h3>
+          <p class="stat-number">{{ formatNumber(stats.suppliersCount) }}</p>
+          <span class="stat-label">Suppliers</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <h3>الأصناف</h3>
+          <p class="stat-number">{{ formatNumber(stats.itemsCount) }}</p>
+          <span class="stat-label">Items</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🏭</div>
+        <div class="stat-content">
+          <h3>المخازن</h3>
+          <p class="stat-number">{{ formatNumber(stats.warehousesCount) }}</p>
+          <span class="stat-label">Warehouses</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="section-title">
+      <h2>🔄 آخر الحركات المالية</h2>
+    </div>
+    
+    <div class="recent-transactions" *ngIf="recentTransactions.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الوصف</th>
+            <th>المبلغ</th>
+            <th>النوع</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transaction of recentTransactions">
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.description }}</td>
+            <td [class.positive]="transaction.amount > 0" [class.negative]="transaction.amount < 0">
+              {{ formatCurrency(transaction.amount) }}
+            </td>
+            <td>
+              <span class="badge" [class.income]="transaction.type === 'income'" [class.expense]="transaction.type === 'expense'">
+                {{ transaction.type === 'income' ? 'إيراد' : 'مصروف' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="recentTransactions.length === 0" class="no-transactions">
+      <i class="fas fa-info-circle"></i>
+      <p>لا توجد حركات مالية حالياً</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="section-title">
+      <h2>🔗 روابط سريعة</h2>
+    </div>
+    
+    <div class="quick-links">
+      <a routerLink="/reports/income-statement" class="quick-link">
+        <i class="fas fa-chart-line"></i>
+        <span>قائمة الدخل</span>
+      </a>
+      <a routerLink="/reports/balance-sheet" class="quick-link">
+        <i class="fas fa-balance-scale"></i>
+        <span>الميزانية العمومية</span>
+      </a>
+      <a routerLink="/reports/cash-flow" class="quick-link">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>التدفقات النقدية</span>
+      </a>
+      <a routerLink="/financial/trial-balance" class="quick-link">
+        <i class="fas fa-calculator"></i>
+        <span>ميزان المراجعة</span>
+      </a>
     </div>
   </div>
 </div>
