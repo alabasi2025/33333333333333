@@ -37,4 +37,12 @@ export class ReportsController {
   ) {
     return await this.reportsService.getBalanceSheet(asOfDate);
   }
+
+  @Get('cash-flow')
+  async getCashFlowStatement(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return await this.reportsService.getCashFlowStatement(startDate, endDate);
+  }
 }

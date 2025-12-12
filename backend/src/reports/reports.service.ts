@@ -398,4 +398,84 @@ export class ReportsService {
 
     return { debit, credit };
   }
+
+  async getCashFlowStatement(startDate: string, endDate: string) {
+    // إنشاء مفتاح cache فريد
+    const cacheKey = `cash_flow_${startDate}_${endDate}`;
+    
+    // محاولة الحصول على البيانات من الـ cache
+    const cachedResult = await this.cacheManager.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    // الحصول على حسابات النقدية والبنوك
+    const cashAccounts = await this.accountRepository.find({
+      where: [
+        { subType: 'cash' },
+        { subType: 'bank' }
+      ]
+    });
+
+    // حساب الرصيد الافتتاحي (قبل تاريخ البداية)
+    let openingBalance = 0;
+    for (const account of cashAccounts) {
+      const balance = await this.getAccountBalance(account.id, null, startDate);
+      openingBalance += balance.debit - balance.credit;
+    }
+
+    // حساب الحركات خلال الفترة
+    const cashFlowItems = [];
+    let totalCashFlow = 0;
+
+    for (const account of cashAccounts) {
+      // الحصول على جميع القيود للحساب
+      const query = this.journalEntryLineRepository
+        .createQueryBuilder('line')
+        .leftJoinAndSelect('line.journalEntry', 'entry')
+        .where('line.accountId = :accountId', { accountId: account.id })
+        .andWhere('entry.isPosted = :isPosted', { isPosted: true })
+        .andWhere('entry.date >= :startDate', { startDate })
+        .andWhere('entry.date <= :endDate', { endDate })
+        .orderBy('entry.date', 'ASC');
+
+      const lines = await query.getMany();
+
+      for (const line of lines) {
+        const debit = parseFloat(line.debit.toString());
+        const credit = parseFloat(line.credit.toString());
+        const netAmount = debit - credit;
+
+        if (netAmount !== 0) {
+          cashFlowItems.push({
+            date: line.journalEntry.date,
+            description: line.description || line.journalEntry.description,
+            accountCode: account.code,
+            accountName: account.name,
+            amount: netAmount
+          });
+          totalCashFlow += netAmount;
+        }
+      }
+    }
+
+    // حساب الرصيد الختامي
+    const closingBalance = openingBalance + totalCashFlow;
+
+    const result = {
+      period: {
+        startDate,
+        endDate
+      },
+      openingBalance,
+      cashFlowItems: cashFlowItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+      totalCashFlow,
+      closingBalance
+    };
+
+    // حفظ النتيجة في الـ cache لمدة 5 دقائق
+    await this.cacheManager.set(cacheKey, result, 300000);
+
+    return result;
+  }
 }
