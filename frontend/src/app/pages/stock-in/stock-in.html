@@ -1,192 +1,0 @@
-<div class="page-container">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>📥 أوامر التوريد المخزني</h1>
-      <p>إدارة عمليات إدخال البضائع للمخازن</p>
-    </div>
-  </div>
-
-  <div class="toolbar">
-    <button class="btn-primary" (click)="openModal()">
-      ➕ إضافة أمر توريد
-    </button>
-  </div>
-
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>رقم الأمر</th>
-          <th>المخزن</th>
-          <th>التاريخ</th>
-          <th>المرجع</th>
-          <th>المورد/الحساب</th>
-          <th>الإجمالي</th>
-          <th>الحالة</th>
-          <th>الإجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let transaction of transactions" style="cursor: pointer;" (click)="viewDetails(transaction.id!)">
-          <td><a [routerLink]="['/inventory/stock-transaction', transaction.id]" (click)="$event.stopPropagation()" style="color: #007bff; text-decoration: none;">{{ transaction.transactionNumber }}</a></td>
-          <td>{{ transaction.warehouseName }}</td>
-          <td>{{ transaction.transactionDate | date:'yyyy-MM-dd' }}</td>
-          <td>{{ transaction.referenceNumber || '-' }}</td>
-          <td>{{ transaction.supplierName || transaction.paymentAccountName || '-' }}</td>
-          <td class="amount">{{ transaction.totalAmount | number:'1.2-2' }}</td>
-          <td>
-            <span class="status-badge" [class.active]="transaction.isApproved">
-              {{ transaction.isApproved ? 'معتمد' : 'قيد المراجعة' }}
-            </span>
-          </td>
-          <td>
-            <button class="btn-icon" (click)="deleteTransaction(transaction.id!)" title="حذف">🗑️</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div *ngIf="transactions.length === 0" class="empty-state">
-    <p>لا توجد أوامر توريد</p>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>إضافة أمر توريد جديد</h2>
-      <button class="btn-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label>المخزن *</label>
-          <select [(ngModel)]="currentTransaction.warehouseId" class="form-control">
-            <option [ngValue]="0">اختر المخزن...</option>
-            <option *ngFor="let warehouse of warehouses" [ngValue]="warehouse.id">
-              {{ warehouse.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>التاريخ *</label>
-          <input type="date" [(ngModel)]="currentTransaction.transactionDate" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label>رقم المرجع</label>
-          <input type="text" [(ngModel)]="currentTransaction.referenceNumber" 
-                 placeholder="رقم فاتورة المورد..." class="form-control">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>نوع الدفع *</label>
-          <select [(ngModel)]="currentTransaction.paymentType" (change)="onPaymentTypeChange()" class="form-control">
-            <option value="supplier">مورد</option>
-            <option value="account">حساب مباشر</option>
-          </select>
-        </div>
-
-        <div class="form-group" *ngIf="currentTransaction.paymentType === 'supplier'">
-          <label>المورد</label>
-          <select [(ngModel)]="currentTransaction.supplierId" class="form-control">
-            <option [ngValue]="undefined">اختر المورد...</option>
-            <option *ngFor="let supplier of suppliers" [ngValue]="supplier.id">
-              {{ supplier.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group" *ngIf="currentTransaction.paymentType === 'account'">
-          <label>الحساب</label>
-          <select [(ngModel)]="currentTransaction.paymentAccountId" class="form-control">
-            <option [ngValue]="undefined">اختر الحساب...</option>
-            <option *ngFor="let account of accounts" [ngValue]="account.id">
-              {{ account.code }} - {{ account.name }}
-            </option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>ملاحظات</label>
-        <textarea [(ngModel)]="currentTransaction.notes" 
-                  placeholder="ملاحظات..." class="form-control" rows="2"></textarea>
-      </div>
-
-      <hr>
-      <h3>الأصناف</h3>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>الصنف</label>
-          <select [(ngModel)]="newItem.itemId" class="form-control">
-            <option [ngValue]="0">اختر الصنف...</option>
-            <option *ngFor="let item of items" [ngValue]="item.id">
-              {{ item.name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>الكمية</label>
-          <input type="number" [(ngModel)]="newItem.quantity" 
-                 (input)="calculateItemTotal()" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label>سعر الوحدة</label>
-          <input type="number" [(ngModel)]="newItem.unitPrice" 
-                 (input)="calculateItemTotal()" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label>الإجمالي</label>
-          <input type="number" [value]="newItem.totalPrice" readonly class="form-control">
-        </div>
-
-        <div class="form-group" style="align-self: flex-end;">
-          <button class="btn-primary" (click)="addItem()">إضافة</button>
-        </div>
-      </div>
-
-      <table class="data-table" *ngIf="currentTransaction.items.length > 0">
-        <thead>
-          <tr>
-            <th>الصنف</th>
-            <th>الكمية</th>
-            <th>السعر</th>
-            <th>الإجمالي</th>
-            <th>إجراء</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of currentTransaction.items; let i = index">
-            <td>{{ item.itemName }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.unitPrice | number:'1.2-2' }}</td>
-            <td>{{ item.totalPrice | number:'1.2-2' }}</td>
-            <td>
-              <button class="btn-icon" (click)="removeItem(i)">🗑️</button>
-            </td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" style="text-align: right;"><strong>الإجمالي الكلي:</strong></td>
-            <td colspan="2"><strong>{{ getTotalAmount() | number:'1.2-2' }}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="closeModal()">إلغاء</button>
-      <button class="btn-primary" (click)="saveTransaction()">حفظ</button>
-    </div>
-  </div>
-</div>
