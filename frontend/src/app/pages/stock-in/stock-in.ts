@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 interface Warehouse {
@@ -65,7 +65,7 @@ interface StockTransaction {
 @Component({
   selector: 'app-stock-in',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './stock-in.html',
   styleUrls: ['./stock-in.css']
 })
