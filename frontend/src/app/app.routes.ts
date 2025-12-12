@@ -10,7 +10,7 @@ import { TrialBalanceComponent } from './pages/trial-balance/trial-balance';
 import { WarehousesComponent } from './pages/warehouses/warehouses';
 import { ItemsComponent } from './pages/items/items';
 import { WarehouseGroupsComponent } from './pages/warehouse-groups/warehouse-groups';
-import { StockInFinalComponent } from './pages/stock-in/stock-in-final.component';
+import { StockInMergedComponent } from './pages/stock-in/stock-in-merged.component';
 import { StockOutComponent } from './pages/stock-out/stock-out';
 import { SupplierGroupsComponent } from './pages/supplier-groups/supplier-groups';
 import { SuppliersComponentNew } from './pages/suppliers/suppliers';
@@ -41,7 +41,7 @@ export const routes: Routes = [
   { path: 'inventory/warehouse-groups', component: WarehouseGroupsComponent },
   { path: 'inventory/warehouses', component: WarehousesComponent },
   { path: 'inventory/items', component: ItemsComponent },
-  { path: 'inventory/stock-in', component: StockInFinalComponent },
+  { path: 'inventory/stock-in', component: StockInMergedComponent },
   { path: 'inventory/stock-out', component: StockOutComponent },
   { path: 'inventory/stock-transaction/:id', component: StockTransactionDetailsComponent },
   { path: 'purchases', component: Dashboard },
