@@ -39,6 +39,9 @@ import { ReceiptVouchersModule } from './receipt-vouchers/receipt-vouchers.modul
 import { PaymentVoucher } from './payment-vouchers/payment-voucher.entity';
 import { ReceiptVoucher } from './receipt-vouchers/receipt-voucher.entity';
 import { AuthModule } from './auth/auth.module';
+import { RecurringTransactionsModule } from './recurring-transactions/recurring-transactions.module';
+import { RecurringTransaction } from './recurring-transactions/recurring-transaction.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -49,7 +52,7 @@ import { AuthModule } from './auth/auth.module';
       username: 'semop_user',
       password: 'Acc@2025#Secure',
       database: 'semop_db',
-      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup, PaymentVoucher, ReceiptVoucher],
+      entities: [Account, AccountGroup, Supplier, Company, Unit, Branch, CashBox, CashTransaction, Bank, Voucher, JournalEntry, JournalEntryLine, Warehouse, Item, StockMovement, StockBalance, WarehouseGroup, StockTransaction, StockTransactionItem, WarehouseSupplier, SupplierGroup, PaymentVoucher, ReceiptVoucher, RecurringTransaction],
       synchronize: false, // Disabled to avoid permission issues
       logging: false,
     }),
@@ -68,6 +71,8 @@ import { AuthModule } from './auth/auth.module';
     PaymentVouchersModule,
     ReceiptVouchersModule,
     AuthModule,
+    RecurringTransactionsModule,
+    ScheduleModule.forRoot(),
     CacheModule.register({
       isGlobal: true,
       ttl: 300, // 5 minutes
