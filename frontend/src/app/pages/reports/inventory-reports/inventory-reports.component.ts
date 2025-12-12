@@ -206,7 +206,10 @@ export class InventoryReportsComponent implements OnInit {
         this.stockMovementSummary = {
           totalQuantityIn: response.totalQuantityIn,
           totalQuantityOut: response.totalQuantityOut,
-          totalQuantityTransfer: response.totalQuantityTransfer
+          totalQuantityTransfer: response.totalQuantityTransfer,
+          movementCount: response.movementCount || 0,
+          totalValueIn: response.totalValueIn || 0,
+          totalValueOut: response.totalValueOut || 0
         };
         this.loading = false;
       },
@@ -228,7 +231,8 @@ export class InventoryReportsComponent implements OnInit {
         this.slowMovingItems = response.items;
         this.slowMovingSummary = {
           totalItems: response.totalItems,
-          totalValue: response.totalValue
+          totalValue: response.totalValue,
+          cutoffDays: response.cutoffDays || this.slowMovingFilters.days
         };
         this.loading = false;
       },
