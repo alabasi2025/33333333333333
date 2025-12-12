@@ -66,7 +66,7 @@ export class InventoryReportsController {
   async getInventoryByWarehouse(
     @Param('warehouseId', ParseIntPipe) warehouseId: number,
   ) {
-    return this.inventoryReportsService.getInventoryByWarehouse(warehouseId);
+    return this.inventoryReportsService.getStockBalanceReport(warehouseId);
   }
 
   /**
@@ -80,7 +80,7 @@ export class InventoryReportsController {
   async getSlowMovingItemsReport(
     @Query('days') days?: string,
   ) {
-    return this.inventoryReportsService.getSlowMovingItemsReport(
+    return this.inventoryReportsService.getSlowMovingReport(
       days ? parseInt(days) : 90,
     );
   }

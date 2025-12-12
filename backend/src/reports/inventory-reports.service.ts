@@ -279,7 +279,7 @@ export class InventoryReportsService {
         .orderBy('transaction.transactionDate', 'DESC')
         .getOne();
 
-      const lastMovementDate = lastTransaction?.transactionDate || balance.createdAt;
+      const lastMovementDate = lastTransaction?.transactionDate || new Date();
       const daysSinceLastMovement = Math.floor(
         (new Date().getTime() - new Date(lastMovementDate).getTime()) / (1000 * 60 * 60 * 24)
       );
