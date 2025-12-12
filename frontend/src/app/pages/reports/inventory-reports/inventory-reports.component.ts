@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 interface StockBalanceItem {
@@ -57,19 +56,30 @@ export class InventoryReportsComponent implements OnInit {
   activeTab: 'balance' | 'movement' | 'slow-moving' = 'balance';
   loading = false;
   
-  // Stock Balance Report
+  // Stock Balance Data
   stockBalanceItems: StockBalanceItem[] = [];
-  stockBalanceSummary: any = null;
+  stockBalanceSummary = {
+    totalQuantity: 0,
+    totalValue: 0,
+    warehouseCount: 0,
+    itemCount: 0
+  };
   
-  // Stock Movement Report
+  // Stock Movement Data
   stockMovementItems: StockMovementItem[] = [];
-  stockMovementSummary: any = null;
+  stockMovementSummary = {
+    totalQuantityIn: 0,
+    totalQuantityOut: 0,
+    totalQuantityTransfer: 0
+  };
   
-  // Slow Moving Items Report
+  // Slow Moving Data
   slowMovingItems: any[] = [];
-  slowMovingSummary: any = null;
+  slowMovingSummary = {
+    totalItems: 0,
+    totalValue: 0
+  };
   
-  // Filters
   warehouses: Warehouse[] = [];
   items: Item[] = [];
   
@@ -99,22 +109,26 @@ export class InventoryReportsComponent implements OnInit {
     this.loadStockBalanceReport();
   }
 
-  async loadWarehouses() {
-    try {
-      const response: any = await firstValueFrom(this.http.get(`${environment.apiUrl}/warehouses`));
-      this.warehouses = response;
-    } catch (error) {
-      console.error('خطأ في تحميل المخازن:', error);
-    }
+  loadWarehouses() {
+    this.http.get(`${environment.apiUrl}/warehouses`).subscribe({
+      next: (response: any) => {
+        this.warehouses = response;
+      },
+      error: (error) => {
+        console.error('خطأ في تحميل المخازن:', error);
+      }
+    });
   }
 
-  async loadItems() {
-    try {
-      const response: any = await firstValueFrom(this.http.get(`${environment.apiUrl}/items`));
-      this.items = response;
-    } catch (error) {
-      console.error('خطأ في تحميل الأصناف:', error);
-    }
+  loadItems() {
+    this.http.get(`${environment.apiUrl}/items`).subscribe({
+      next: (response: any) => {
+        this.items = response;
+      },
+      error: (error) => {
+        console.error('خطأ في تحميل الأصناف:', error);
+      }
+    });
   }
 
   switchTab(tab: 'balance' | 'movement' | 'slow-moving') {
@@ -129,106 +143,109 @@ export class InventoryReportsComponent implements OnInit {
     }
   }
 
-  async loadStockBalanceReport() {
+  loadStockBalanceReport() {
     this.loading = true;
-    try {
-      let params = new HttpParams();
-      
-      if (this.balanceFilters.warehouseId) {
-        params = params.set('warehouseId', this.balanceFilters.warehouseId);
-      }
-      if (this.balanceFilters.itemId) {
-        params = params.set('itemId', this.balanceFilters.itemId);
-      }
-      if (this.balanceFilters.minQuantity) {
-        params = params.set('minQuantity', this.balanceFilters.minQuantity);
-      }
-
-      const response: any = await firstValueFrom(this.http.get(
-        `${environment.apiUrl}/reports/inventory/stock-balance`,
-        { params }
-      ));
-
-      this.stockBalanceItems = response.items;
-      this.stockBalanceSummary = {
-        totalQuantity: response.totalQuantity,
-        totalValue: response.totalValue,
-        warehouseCount: response.warehouseCount,
-        itemCount: response.itemCount
-      };
-    } catch (error) {
-      console.error('خطأ في تحميل تقرير أرصدة المخزون:', error);
-      alert('حدث خطأ في تحميل التقرير');
-    } finally {
-      this.loading = false;
+    let params = new HttpParams();
+    
+    if (this.balanceFilters.warehouseId) {
+      params = params.set('warehouseId', this.balanceFilters.warehouseId);
     }
+    if (this.balanceFilters.itemId) {
+      params = params.set('itemId', this.balanceFilters.itemId);
+    }
+    if (this.balanceFilters.minQuantity) {
+      params = params.set('minQuantity', this.balanceFilters.minQuantity);
+    }
+
+    this.http.get(`${environment.apiUrl}/reports/inventory/stock-balance`, { params }).subscribe({
+      next: (response: any) => {
+        this.stockBalanceItems = response.items;
+        this.stockBalanceSummary = {
+          totalQuantity: response.totalQuantity,
+          totalValue: response.totalValue,
+          warehouseCount: response.warehouseCount,
+          itemCount: response.itemCount
+        };
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('خطأ في تحميل تقرير أرصدة المخزون:', error);
+        alert('حدث خطأ في تحميل التقرير');
+        this.loading = false;
+      }
+    });
   }
 
-  async loadStockMovementReport() {
+  loadStockMovementReport() {
     this.loading = true;
-    try {
-      let params = new HttpParams();
-      
-      if (this.movementFilters.startDate) {
-        params = params.set('startDate', this.movementFilters.startDate);
-      }
-      if (this.movementFilters.endDate) {
-        params = params.set('endDate', this.movementFilters.endDate);
-      }
-      if (this.movementFilters.warehouseId) {
-        params = params.set('warehouseId', this.movementFilters.warehouseId);
-      }
-      if (this.movementFilters.itemId) {
-        params = params.set('itemId', this.movementFilters.itemId);
-      }
-      if (this.movementFilters.movementType) {
-        params = params.set('movementType', this.movementFilters.movementType);
-      }
-
-      const response: any = await firstValueFrom(this.http.get(
-        `${environment.apiUrl}/reports/inventory/stock-movement`,
-        { params }
-      ));
-
-      this.stockMovementItems = response.items;
-      this.stockMovementSummary = {
-        totalQuantityIn: response.totalQuantityIn,
-        totalQuantityOut: response.totalQuantityOut,
-        totalValueIn: response.totalValueIn,
-        totalValueOut: response.totalValueOut,
-        movementCount: response.movementCount
-      };
-    } catch (error) {
-      console.error('خطأ في تحميل تقرير حركة المخزون:', error);
-      alert('حدث خطأ في تحميل التقرير');
-    } finally {
-      this.loading = false;
+    let params = new HttpParams();
+    
+    if (this.movementFilters.startDate) {
+      params = params.set('startDate', this.movementFilters.startDate);
     }
+    if (this.movementFilters.endDate) {
+      params = params.set('endDate', this.movementFilters.endDate);
+    }
+    if (this.movementFilters.warehouseId) {
+      params = params.set('warehouseId', this.movementFilters.warehouseId);
+    }
+    if (this.movementFilters.itemId) {
+      params = params.set('itemId', this.movementFilters.itemId);
+    }
+    if (this.movementFilters.movementType) {
+      params = params.set('movementType', this.movementFilters.movementType);
+    }
+
+    this.http.get(`${environment.apiUrl}/reports/inventory/stock-movement`, { params }).subscribe({
+      next: (response: any) => {
+        this.stockMovementItems = response.items;
+        this.stockMovementSummary = {
+          totalQuantityIn: response.totalQuantityIn,
+          totalQuantityOut: response.totalQuantityOut,
+          totalQuantityTransfer: response.totalQuantityTransfer
+        };
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('خطأ في تحميل تقرير حركة المخزون:', error);
+        alert('حدث خطأ في تحميل التقرير');
+        this.loading = false;
+      }
+    });
   }
 
-  async loadSlowMovingReport() {
+  loadSlowMovingReport() {
     this.loading = true;
-    try {
-      let params = new HttpParams();
-      params = params.set('days', this.slowMovingFilters.days.toString());
+    let params = new HttpParams();
+    params = params.set('days', this.slowMovingFilters.days.toString());
 
-      const response: any = await firstValueFrom(this.http.get(
-        `${environment.apiUrl}/reports/inventory/slow-moving`,
-        { params }
-      ));
+    this.http.get(`${environment.apiUrl}/reports/inventory/slow-moving`, { params }).subscribe({
+      next: (response: any) => {
+        this.slowMovingItems = response.items;
+        this.slowMovingSummary = {
+          totalItems: response.totalItems,
+          totalValue: response.totalValue
+        };
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('خطأ في تحميل تقرير الأصناف الراكدة:', error);
+        alert('حدث خطأ في تحميل التقرير');
+        this.loading = false;
+      }
+    });
+  }
 
-      this.slowMovingItems = response.items;
-      this.slowMovingSummary = {
-        totalItems: response.totalItems,
-        totalValue: response.totalValue,
-        cutoffDays: response.cutoffDays
-      };
-    } catch (error) {
-      console.error('خطأ في تحميل تقرير الأصناف الراكدة:', error);
-      alert('حدث خطأ في تحميل التقرير');
-    } finally {
-      this.loading = false;
-    }
+  searchBalance() {
+    this.loadStockBalanceReport();
+  }
+
+  searchMovement() {
+    this.loadStockMovementReport();
+  }
+
+  searchSlowMoving() {
+    this.loadSlowMovingReport();
   }
 
   resetBalanceFilters() {
@@ -251,11 +268,18 @@ export class InventoryReportsComponent implements OnInit {
     this.loadStockMovementReport();
   }
 
-  printReport() {
+  resetSlowMovingFilters() {
+    this.slowMovingFilters = {
+      days: 90
+    };
+    this.loadSlowMovingReport();
+  }
+
+  print() {
     window.print();
   }
 
-  exportToExcel() {
+  exportExcel() {
     alert('ميزة التصدير إلى Excel قيد التطوير');
   }
 }
