@@ -70,14 +70,18 @@ export class InventoryReportsComponent implements OnInit {
   stockMovementSummary = {
     totalQuantityIn: 0,
     totalQuantityOut: 0,
-    totalQuantityTransfer: 0
+    totalQuantityTransfer: 0,
+    movementCount: 0,
+    totalValueIn: 0,
+    totalValueOut: 0
   };
   
   // Slow Moving Data
   slowMovingItems: any[] = [];
   slowMovingSummary = {
     totalItems: 0,
-    totalValue: 0
+    totalValue: 0,
+    cutoffDays: 90
   };
   
   warehouses: Warehouse[] = [];
@@ -275,11 +279,11 @@ export class InventoryReportsComponent implements OnInit {
     this.loadSlowMovingReport();
   }
 
-  print() {
+  printReport() {
     window.print();
   }
 
-  exportExcel() {
+  exportToExcel() {
     alert('ميزة التصدير إلى Excel قيد التطوير');
   }
 }
