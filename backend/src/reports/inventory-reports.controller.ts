@@ -1,9 +1,7 @@
-import { Controller, Get, Query, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
 import { InventoryReportsService } from './inventory-reports.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('reports/inventory')
-@UseGuards(JwtAuthGuard)
 export class InventoryReportsController {
   constructor(private readonly inventoryReportsService: InventoryReportsService) {}
 
