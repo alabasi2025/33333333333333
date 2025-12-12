@@ -37,6 +37,7 @@ import { PaymentVouchersModule } from './payment-vouchers/payment-vouchers.modul
 import { ReceiptVouchersModule } from './receipt-vouchers/receipt-vouchers.module';
 import { PaymentVoucher } from './payment-vouchers/payment-voucher.entity';
 import { ReceiptVoucher } from './receipt-vouchers/receipt-voucher.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { ReceiptVoucher } from './receipt-vouchers/receipt-voucher.entity';
     WarehousesModule,
     PaymentVouchersModule,
     ReceiptVouchersModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
