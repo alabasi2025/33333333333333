@@ -4,7 +4,8 @@ import { Repository, Between, LessThanOrEqual } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { StockBalance } from '../warehouses/stock-balance.entity';
-import { StockMovement } from '../warehouses/stock-movement.entity';
+import { StockTransaction } from '../warehouses/stock-transaction.entity';
+import { StockTransactionItem } from '../warehouses/stock-transaction-item.entity';
 import { Warehouse } from '../warehouses/warehouse.entity';
 import { Item } from '../warehouses/item.entity';
 
@@ -34,8 +35,6 @@ export interface StockMovementReportItem {
   movementTypeAr: string;
   warehouseCode: string;
   warehouseName: string;
-  toWarehouseCode?: string;
-  toWarehouseName?: string;
   itemCode: string;
   itemName: string;
   unit: string;
@@ -54,51 +53,31 @@ export interface StockMovementReport {
   movementCount: number;
 }
 
-export interface InventoryByWarehouseItem {
-  itemCode: string;
-  itemName: string;
-  unit: string;
-  quantity: number;
-  averageCost: number;
-  totalValue: number;
-}
-
-export interface InventoryByWarehouse {
-  warehouse: {
-    code: string;
-    name: string;
-  };
-  items: InventoryByWarehouseItem[];
-  totalItems: number;
-  totalQuantity: number;
-  totalValue: number;
-}
-
 @Injectable()
 export class InventoryReportsService {
   constructor(
     @InjectRepository(StockBalance)
-    private stockBalanceRepository: Repository<StockBalance>,
-    @InjectRepository(StockMovement)
-    private stockMovementRepository: Repository<StockMovement>,
+    private readonly stockBalanceRepository: Repository<StockBalance>,
+    @InjectRepository(StockTransaction)
+    private readonly stockTransactionRepository: Repository<StockTransaction>,
     @InjectRepository(Warehouse)
-    private warehouseRepository: Repository<Warehouse>,
+    private readonly warehouseRepository: Repository<Warehouse>,
     @InjectRepository(Item)
-    private itemRepository: Repository<Item>,
+    private readonly itemRepository: Repository<Item>,
     @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    private readonly cacheManager: Cache,
   ) {}
 
   /**
    * تقرير أرصدة المخزون
-   * يعرض الأرصدة الحالية لجميع الأصناف في جميع المخازن
+   * يعرض الأرصدة الحالية لجميع الأصناف في المخازن
    */
   async getStockBalanceReport(
     warehouseId?: number,
     itemId?: number,
     minQuantity?: number,
   ): Promise<StockBalanceReport> {
-    const cacheKey = `stock_balance_report_${warehouseId || 'all'}_${itemId || 'all'}_${minQuantity || 'all'}`;
+    const cacheKey = `stock_balance_report_${warehouseId || 'all'}_${itemId || 'all'}_${minQuantity || 0}`;
     
     const cachedResult = await this.cacheManager.get<StockBalanceReport>(cacheKey);
     if (cachedResult) {
@@ -118,9 +97,12 @@ export class InventoryReportsService {
       query = query.andWhere('balance.itemId = :itemId', { itemId });
     }
 
-    if (minQuantity !== undefined) {
+    if (minQuantity) {
       query = query.andWhere('balance.quantity >= :minQuantity', { minQuantity });
     }
+
+    query = query.orderBy('warehouse.name', 'ASC')
+      .addOrderBy('item.name', 'ASC');
 
     const balances = await query.getMany();
 
@@ -131,20 +113,18 @@ export class InventoryReportsService {
       itemName: balance.item.name,
       unit: balance.item.unit?.name || 'N/A',
       quantity: parseFloat(balance.quantity.toString()),
-      averageCost: parseFloat(balance.averageCost.toString()),
-      totalValue: parseFloat(balance.totalValue.toString()),
+      averageCost: parseFloat(balance.averageCost?.toString() || '0'),
+      totalValue: parseFloat(balance.quantity.toString()) * parseFloat(balance.averageCost?.toString() || '0'),
     }));
 
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalValue = items.reduce((sum, item) => sum + item.totalValue, 0);
+    
     const uniqueWarehouses = new Set(items.map(item => item.warehouseCode));
     const uniqueItems = new Set(items.map(item => item.itemCode));
 
     const result = {
-      items: items.sort((a, b) => 
-        a.warehouseCode.localeCompare(b.warehouseCode) || 
-        a.itemCode.localeCompare(b.itemCode)
-      ),
+      items,
       totalQuantity,
       totalValue,
       warehouseCount: uniqueWarehouses.size,
@@ -157,7 +137,7 @@ export class InventoryReportsService {
 
   /**
    * تقرير حركة المخزون
-   * يعرض جميع حركات المخزون خلال فترة زمنية محددة
+   * يعرض جميع حركات المخزون (أوامر التوريد والصرف) خلال فترة زمنية محددة
    */
   async getStockMovementReport(
     startDate?: string,
@@ -173,67 +153,67 @@ export class InventoryReportsService {
       return cachedResult;
     }
 
-    let query = this.stockMovementRepository
-      .createQueryBuilder('movement')
-      .leftJoinAndSelect('movement.warehouse', 'warehouse')
-      .leftJoinAndSelect('movement.item', 'item')
-      .leftJoinAndSelect('movement.toWarehouse', 'toWarehouse');
+    let query = this.stockTransactionRepository
+      .createQueryBuilder('transaction')
+      .leftJoinAndSelect('transaction.warehouse', 'warehouse')
+      .leftJoinAndSelect('transaction.items', 'transactionItems')
+      .leftJoinAndSelect('transactionItems.item', 'item');
 
     if (startDate && endDate) {
-      query = query.where('movement.movementDate BETWEEN :startDate AND :endDate', {
+      query = query.where('transaction.transactionDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       });
     } else if (startDate) {
-      query = query.where('movement.movementDate >= :startDate', { startDate });
+      query = query.where('transaction.transactionDate >= :startDate', { startDate });
     } else if (endDate) {
-      query = query.where('movement.movementDate <= :endDate', { endDate });
+      query = query.where('transaction.transactionDate <= :endDate', { endDate });
     }
 
     if (warehouseId) {
-      query = query.andWhere(
-        '(movement.warehouseId = :warehouseId OR movement.toWarehouseId = :warehouseId)',
-        { warehouseId }
-      );
-    }
-
-    if (itemId) {
-      query = query.andWhere('movement.itemId = :itemId', { itemId });
+      query = query.andWhere('transaction.warehouseId = :warehouseId', { warehouseId });
     }
 
     if (movementType) {
-      query = query.andWhere('movement.movementType = :movementType', { movementType });
+      query = query.andWhere('transaction.transactionType = :movementType', { movementType });
     }
 
-    query = query.orderBy('movement.movementDate', 'DESC')
-      .addOrderBy('movement.id', 'DESC');
+    query = query.orderBy('transaction.transactionDate', 'DESC')
+      .addOrderBy('transaction.id', 'DESC');
 
-    const movements = await query.getMany();
+    const transactions = await query.getMany();
 
     const movementTypeMap = {
       'in': 'إدخال',
       'out': 'إخراج',
-      'transfer': 'نقل',
-      'adjustment': 'تسوية',
     };
 
-    const items: StockMovementReportItem[] = movements.map(movement => ({
-      date: movement.movementDate,
-      referenceNumber: movement.referenceNumber,
-      movementType: movement.movementType,
-      movementTypeAr: movementTypeMap[movement.movementType] || movement.movementType,
-      warehouseCode: movement.warehouse.code,
-      warehouseName: movement.warehouse.name,
-      toWarehouseCode: movement.toWarehouse?.code,
-      toWarehouseName: movement.toWarehouse?.name,
-      itemCode: movement.item.code,
-      itemName: movement.item.name,
-      unit: movement.item.unit?.name || 'N/A',
-      quantity: parseFloat(movement.quantity.toString()),
-      unitCost: parseFloat(movement.unitCost?.toString() || '0'),
-      totalCost: parseFloat(movement.totalCost?.toString() || '0'),
-      notes: movement.notes,
-    }));
+    const items: StockMovementReportItem[] = [];
+    
+    for (const transaction of transactions) {
+      for (const transactionItem of transaction.items) {
+        // تصفية حسب itemId إذا تم تحديده
+        if (itemId && transactionItem.itemId !== itemId) {
+          continue;
+        }
+
+        items.push({
+          date: transaction.transactionDate,
+          referenceNumber: transaction.referenceNumber || transaction.transactionNumber,
+          movementType: transaction.transactionType,
+          movementTypeAr: movementTypeMap[transaction.transactionType] || transaction.transactionType,
+          warehouseCode: transaction.warehouse.code,
+          warehouseName: transaction.warehouse.name,
+          itemCode: transactionItem.item.code,
+          itemName: transactionItem.item.name,
+          unit: transactionItem.item.unit?.name || 'N/A',
+          quantity: parseFloat(transactionItem.quantity.toString()),
+          unitCost: parseFloat(transactionItem.unitPrice?.toString() || '0'),
+          totalCost: parseFloat(transactionItem.totalPrice?.toString() || '0'),
+          notes: transaction.notes,
+        });
+      }
+    }
 
     const totalQuantityIn = items
       .filter(item => item.movementType === 'in')
@@ -265,65 +245,11 @@ export class InventoryReportsService {
   }
 
   /**
-   * تقرير المخزون حسب المخزن
-   * يعرض جميع الأصناف الموجودة في مخزن محدد مع تفاصيلها
-   */
-  async getInventoryByWarehouse(warehouseId: number): Promise<InventoryByWarehouse> {
-    const cacheKey = `inventory_by_warehouse_${warehouseId}`;
-    
-    const cachedResult = await this.cacheManager.get<InventoryByWarehouse>(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
-    }
-
-    const warehouse = await this.warehouseRepository.findOne({
-      where: { id: warehouseId },
-    });
-
-    if (!warehouse) {
-      throw new Error('المخزن غير موجود');
-    }
-
-    const balances = await this.stockBalanceRepository
-      .createQueryBuilder('balance')
-      .leftJoinAndSelect('balance.item', 'item')
-      .where('balance.warehouseId = :warehouseId', { warehouseId })
-      .andWhere('balance.quantity > 0')
-      .getMany();
-
-    const items: InventoryByWarehouseItem[] = balances.map(balance => ({
-      itemCode: balance.item.code,
-      itemName: balance.item.name,
-      unit: balance.item.unit?.name || 'N/A',
-      quantity: parseFloat(balance.quantity.toString()),
-      averageCost: parseFloat(balance.averageCost.toString()),
-      totalValue: parseFloat(balance.totalValue.toString()),
-    }));
-
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => sum + item.totalValue, 0);
-
-    const result = {
-      warehouse: {
-        code: warehouse.code,
-        name: warehouse.name,
-      },
-      items: items.sort((a, b) => a.itemCode.localeCompare(b.itemCode)),
-      totalItems: items.length,
-      totalQuantity,
-      totalValue,
-    };
-
-    await this.cacheManager.set(cacheKey, result, 300000); // 5 minutes
-    return result;
-  }
-
-  /**
    * تقرير الأصناف الراكدة
-   * يعرض الأصناف التي لم تتحرك خلال فترة زمنية محددة
+   * يعرض الأصناف التي لم تتحرك لفترة محددة
    */
-  async getSlowMovingItemsReport(days: number = 90): Promise<any> {
-    const cacheKey = `slow_moving_items_${days}`;
+  async getSlowMovingReport(days: number = 90): Promise<any> {
+    const cacheKey = `slow_moving_report_${days}`;
     
     const cachedResult = await this.cacheManager.get(cacheKey);
     if (cachedResult) {
@@ -333,11 +259,11 @@ export class InventoryReportsService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    // الحصول على جميع الأصناف التي لديها رصيد
+    // جلب جميع الأرصدة
     const balances = await this.stockBalanceRepository
       .createQueryBuilder('balance')
-      .leftJoinAndSelect('balance.item', 'item')
       .leftJoinAndSelect('balance.warehouse', 'warehouse')
+      .leftJoinAndSelect('balance.item', 'item')
       .where('balance.quantity > 0')
       .getMany();
 
@@ -345,14 +271,20 @@ export class InventoryReportsService {
 
     for (const balance of balances) {
       // البحث عن آخر حركة لهذا الصنف في هذا المخزن
-      const lastMovement = await this.stockMovementRepository
-        .createQueryBuilder('movement')
-        .where('movement.itemId = :itemId', { itemId: balance.itemId })
-        .andWhere('movement.warehouseId = :warehouseId', { warehouseId: balance.warehouseId })
-        .orderBy('movement.movementDate', 'DESC')
+      const lastTransaction = await this.stockTransactionRepository
+        .createQueryBuilder('transaction')
+        .leftJoinAndSelect('transaction.items', 'transactionItems')
+        .where('transaction.warehouseId = :warehouseId', { warehouseId: balance.warehouseId })
+        .andWhere('transactionItems.itemId = :itemId', { itemId: balance.itemId })
+        .orderBy('transaction.transactionDate', 'DESC')
         .getOne();
 
-      if (!lastMovement || lastMovement.movementDate < cutoffDate) {
+      const lastMovementDate = lastTransaction?.transactionDate || balance.createdAt;
+      const daysSinceLastMovement = Math.floor(
+        (new Date().getTime() - new Date(lastMovementDate).getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceLastMovement >= days) {
         slowMovingItems.push({
           warehouseCode: balance.warehouse.code,
           warehouseName: balance.warehouse.name,
@@ -360,26 +292,24 @@ export class InventoryReportsService {
           itemName: balance.item.name,
           unit: balance.item.unit?.name || 'N/A',
           quantity: parseFloat(balance.quantity.toString()),
-          averageCost: parseFloat(balance.averageCost.toString()),
-          totalValue: parseFloat(balance.totalValue.toString()),
-          lastMovementDate: lastMovement?.movementDate || null,
-          daysSinceLastMovement: lastMovement 
-            ? Math.floor((new Date().getTime() - new Date(lastMovement.movementDate).getTime()) / (1000 * 60 * 60 * 24))
-            : null,
+          averageCost: parseFloat(balance.averageCost?.toString() || '0'),
+          totalValue: parseFloat(balance.quantity.toString()) * parseFloat(balance.averageCost?.toString() || '0'),
+          lastMovementDate,
+          daysSinceLastMovement,
         });
       }
     }
 
+    const totalValue = slowMovingItems.reduce((sum, item) => sum + item.totalValue, 0);
+
     const result = {
-      items: slowMovingItems.sort((a, b) => 
-        (b.daysSinceLastMovement || Infinity) - (a.daysSinceLastMovement || Infinity)
-      ),
+      items: slowMovingItems,
       totalItems: slowMovingItems.length,
-      totalValue: slowMovingItems.reduce((sum, item) => sum + item.totalValue, 0),
+      totalValue,
       cutoffDays: days,
     };
 
-    await this.cacheManager.set(cacheKey, result, 600000); // 10 minutes
+    await this.cacheManager.set(cacheKey, result, 300000); // 5 minutes
     return result;
   }
 }
